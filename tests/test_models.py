@@ -4,7 +4,7 @@ import pytest
 import httpx
 import respx
 
-from kafeido import OpenAI, Model, ModelList
+from kafeido import OpenAI, Model, ModelList, ModelStatus, WarmupResponse
 
 
 @respx.mock
@@ -81,3 +81,56 @@ def test_models_not_found(client, base_url):
         client.models.retrieve("invalid-model")
 
     assert exc_info.value.status_code == 404
+
+
+@respx.mock
+def test_model_status(client, base_url):
+    """Test getting model status."""
+    mock_response = {
+        "model_id": "whisper-large-v3",
+        "status": {
+            "status": "healthy",
+            "usage_percent": 0.3,
+        },
+    }
+    route = respx.get(f"{base_url}/v1/models/whisper-large-v3/status").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
+
+    result = client.models.status("whisper-large-v3")
+
+    assert isinstance(result, ModelStatus)
+    assert result.model_id == "whisper-large-v3"
+    assert result.status is not None
+    assert result.status.status == "healthy"
+    assert route.called
+
+
+@respx.mock
+def test_model_warmup(client, base_url):
+    """Test warming up a model."""
+    mock_response = {"already_warm": False, "estimated_seconds": 45.0}
+    route = respx.post(f"{base_url}/v1/models/warmup").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
+
+    result = client.models.warmup(model="whisper-large-v3")
+
+    assert isinstance(result, WarmupResponse)
+    assert result.already_warm is False
+    assert result.estimated_seconds == 45.0
+    assert route.called
+
+
+@respx.mock
+def test_model_warmup_already_warm(client, base_url):
+    """Test warming up a model that is already warm."""
+    mock_response = {"already_warm": True, "estimated_seconds": 0.0}
+    route = respx.post(f"{base_url}/v1/models/warmup").mock(
+        return_value=httpx.Response(200, json=mock_response)
+    )
+
+    result = client.models.warmup(model="gpt-oss-20b")
+
+    assert result.already_warm is True
+    assert route.called

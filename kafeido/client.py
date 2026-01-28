@@ -9,6 +9,10 @@ from kafeido.resources.chat import Chat
 from kafeido.resources.audio import Audio
 from kafeido.resources.models import Models
 from kafeido.resources.files import Files
+from kafeido.resources.ocr import OCR
+from kafeido.resources.vision import Vision
+from kafeido.resources.jobs import Jobs
+from kafeido.types.health import HealthResponse
 
 
 class OpenAI:
@@ -80,6 +84,9 @@ class OpenAI:
         self._audio = Audio(self._http_client)
         self._models = Models(self._http_client)
         self._files = Files(self._http_client)
+        self._ocr = OCR(self._http_client)
+        self._vision = Vision(self._http_client)
+        self._jobs = Jobs(self._http_client)
 
     @property
     def chat(self) -> Chat:
@@ -138,6 +145,42 @@ class OpenAI:
             ...     file_obj = client.files.create(file=f, purpose="assistants")
         """
         return self._files
+
+    @property
+    def ocr(self) -> OCR:
+        """Access OCR API.
+
+        Returns:
+            OCR resource for text extraction from images.
+        """
+        return self._ocr
+
+    @property
+    def vision(self) -> Vision:
+        """Access vision API.
+
+        Returns:
+            Vision resource for image analysis and chat.
+        """
+        return self._vision
+
+    @property
+    def jobs(self) -> Jobs:
+        """Access jobs API.
+
+        Returns:
+            Jobs resource for tracking async job status and progress.
+        """
+        return self._jobs
+
+    def health(self) -> HealthResponse:
+        """Check the health of the API service.
+
+        Returns:
+            HealthResponse with status, version, and build info.
+        """
+        response_data = self._http_client.get("/v1/health")
+        return HealthResponse.model_validate(response_data)
 
     def close(self) -> None:
         """Close the HTTP client and clean up resources."""

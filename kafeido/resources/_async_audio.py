@@ -1,8 +1,8 @@
-"""Audio transcription and translation resources."""
+"""Async audio transcription and translation resources."""
 
 from typing import BinaryIO, Literal, Optional, Union
 
-from kafeido._http_client import HTTPClient
+from kafeido._http_client import AsyncHTTPClient
 from kafeido.types.audio import (
     AsyncTranscriptionResponse,
     AsyncTranscriptionResult,
@@ -16,18 +16,18 @@ from kafeido.types.tts import CreateSpeechAsyncResponse, GetSpeechResultResponse
 FileTypes = Union[BinaryIO, bytes]
 
 
-class Transcriptions:
-    """Audio transcriptions endpoint."""
+class AsyncTranscriptions:
+    """Async audio transcriptions endpoint."""
 
-    def __init__(self, http_client: HTTPClient) -> None:
-        """Initialize transcriptions resource.
+    def __init__(self, http_client: AsyncHTTPClient) -> None:
+        """Initialize async transcriptions resource.
 
         Args:
-            http_client: The HTTP client to use for requests.
+            http_client: The async HTTP client to use for requests.
         """
         self._client = http_client
 
-    def create(
+    async def create(
         self,
         *,
         file: FileTypes,
@@ -38,7 +38,7 @@ class Transcriptions:
         temperature: Optional[float] = None,
         timestamp_granularities: Optional[list[str]] = None,
     ) -> Transcription:
-        """Transcribe audio to text.
+        """Transcribe audio to text asynchronously.
 
         Args:
             file: The audio file to transcribe (file object or bytes).
@@ -53,9 +53,9 @@ class Transcriptions:
             Transcription with text and optional segments.
 
         Example:
-            >>> client = OpenAI(api_key="sk-...")
+            >>> client = AsyncOpenAI(api_key="sk-...")
             >>> with open("audio.mp3", "rb") as f:
-            ...     transcript = client.audio.transcriptions.create(
+            ...     transcript = await client.audio.transcriptions.create(
             ...         file=f,
             ...         model="whisper-large-v3"
             ...     )
@@ -77,14 +77,14 @@ class Transcriptions:
         if timestamp_granularities:
             data["timestamp_granularities[]"] = timestamp_granularities
 
-        response_data = self._client.post(
+        response_data = await self._client.post(
             "/v1/audio/transcriptions",
             data=data,
             files=files,
         )
         return Transcription.model_validate(response_data)
 
-    def create_async(
+    async def create_async(
         self,
         *,
         storage_key: str,
@@ -95,20 +95,7 @@ class Transcriptions:
         temperature: Optional[float] = None,
         timestamp_granularities: Optional[list[str]] = None,
     ) -> AsyncTranscriptionResponse:
-        """Create an async transcription job.
-
-        Args:
-            storage_key: Storage key of the uploaded audio file.
-            model: Model ID (e.g., "whisper-large-v3").
-            language: Language of the audio (ISO-639-1 code).
-            prompt: Optional text to guide the model's style.
-            response_format: Format of the response.
-            temperature: Sampling temperature (0-1).
-            timestamp_granularities: Granularity of timestamps.
-
-        Returns:
-            AsyncTranscriptionResponse with job_id for polling.
-        """
+        """Create an async transcription job."""
         body = {
             "storage_key": storage_key,
             "model": model,
@@ -124,38 +111,31 @@ class Transcriptions:
         if timestamp_granularities is not None:
             body["timestamp_granularities"] = timestamp_granularities
 
-        response_data = self._client.post(
+        response_data = await self._client.post(
             "/v1/audio/transcriptions/async", json=body
         )
         return AsyncTranscriptionResponse.model_validate(response_data)
 
-    def get_result(self, *, job_id: str) -> AsyncTranscriptionResult:
-        """Get the result of an async transcription job.
-
-        Args:
-            job_id: The job ID from create_async().
-
-        Returns:
-            AsyncTranscriptionResult with status, progress, and result.
-        """
-        response_data = self._client.get(
+    async def get_result(self, *, job_id: str) -> AsyncTranscriptionResult:
+        """Get the result of an async transcription job."""
+        response_data = await self._client.get(
             f"/v1/audio/transcriptions/async/{job_id}"
         )
         return AsyncTranscriptionResult.model_validate(response_data)
 
 
-class Translations:
-    """Audio translations endpoint."""
+class AsyncTranslations:
+    """Async audio translations endpoint."""
 
-    def __init__(self, http_client: HTTPClient) -> None:
-        """Initialize translations resource.
+    def __init__(self, http_client: AsyncHTTPClient) -> None:
+        """Initialize async translations resource.
 
         Args:
-            http_client: The HTTP client to use for requests.
+            http_client: The async HTTP client to use for requests.
         """
         self._client = http_client
 
-    def create(
+    async def create(
         self,
         *,
         file: FileTypes,
@@ -164,7 +144,7 @@ class Translations:
         response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] = "json",
         temperature: Optional[float] = None,
     ) -> Translation:
-        """Translate audio to English.
+        """Translate audio to English asynchronously.
 
         Args:
             file: The audio file to translate (file object or bytes).
@@ -177,9 +157,9 @@ class Translations:
             Translation with English text.
 
         Example:
-            >>> client = OpenAI(api_key="sk-...")
+            >>> client = AsyncOpenAI(api_key="sk-...")
             >>> with open("audio_spanish.mp3", "rb") as f:
-            ...     translation = client.audio.translations.create(
+            ...     translation = await client.audio.translations.create(
             ...         file=f,
             ...         model="whisper-large-v3"
             ...     )
@@ -197,7 +177,7 @@ class Translations:
         if temperature is not None:
             data["temperature"] = str(temperature)
 
-        response_data = self._client.post(
+        response_data = await self._client.post(
             "/v1/audio/translations",
             data=data,
             files=files,
@@ -205,13 +185,13 @@ class Translations:
         return Translation.model_validate(response_data)
 
 
-class Speech:
-    """Text-to-speech endpoint."""
+class AsyncSpeech:
+    """Async text-to-speech endpoint."""
 
-    def __init__(self, http_client: HTTPClient) -> None:
+    def __init__(self, http_client: AsyncHTTPClient) -> None:
         self._client = http_client
 
-    def create(
+    async def create(
         self,
         *,
         model: str,
@@ -228,26 +208,7 @@ class Speech:
         top_k: Optional[int] = None,
         max_tokens: Optional[int] = None,
     ) -> CreateSpeechAsyncResponse:
-        """Create a text-to-speech job.
-
-        Args:
-            model: TTS model ID (e.g., "qwen3-tts", "xtts-v2", "tts-1").
-            input: Text to synthesize (max 4096 chars).
-            voice: Voice preset (alloy, echo, fable, onyx, nova, shimmer).
-            response_format: Audio format (wav, mp3, opus, flac, aac, pcm).
-            speed: Speech speed (0.25-4.0).
-            reference_audio_id: File ID for voice cloning.
-            reference_audio_key: Storage key for voice cloning.
-            language: Language code for synthesis.
-            system_prompt: Scene description for the model.
-            temperature: Sampling temperature.
-            top_p: Top-p sampling.
-            top_k: Top-k sampling.
-            max_tokens: Maximum tokens.
-
-        Returns:
-            CreateSpeechAsyncResponse with job_id for polling.
-        """
+        """Create a text-to-speech job asynchronously."""
         body: dict = {
             "model": model,
             "input": input,
@@ -275,47 +236,40 @@ class Speech:
         if max_tokens is not None:
             body["max_tokens"] = max_tokens
 
-        response_data = self._client.post("/v1/audio/speech", json=body)
+        response_data = await self._client.post("/v1/audio/speech", json=body)
         return CreateSpeechAsyncResponse.model_validate(response_data)
 
-    def get_result(self, *, job_id: str) -> GetSpeechResultResponse:
-        """Get the result of a TTS job.
-
-        Args:
-            job_id: The job ID from create().
-
-        Returns:
-            GetSpeechResultResponse with status, progress, and download URL.
-        """
-        response_data = self._client.get(f"/v1/audio/speech/{job_id}")
+    async def get_result(self, *, job_id: str) -> GetSpeechResultResponse:
+        """Get the result of a TTS job asynchronously."""
+        response_data = await self._client.get(f"/v1/audio/speech/{job_id}")
         return GetSpeechResultResponse.model_validate(response_data)
 
 
-class Audio:
-    """Audio resource."""
+class AsyncAudio:
+    """Async audio resource."""
 
-    def __init__(self, http_client: HTTPClient) -> None:
-        """Initialize audio resource.
+    def __init__(self, http_client: AsyncHTTPClient) -> None:
+        """Initialize async audio resource.
 
         Args:
-            http_client: The HTTP client to use for requests.
+            http_client: The async HTTP client to use for requests.
         """
         self._client = http_client
-        self._transcriptions = Transcriptions(http_client)
-        self._translations = Translations(http_client)
-        self._speech = Speech(http_client)
+        self._transcriptions = AsyncTranscriptions(http_client)
+        self._translations = AsyncTranslations(http_client)
+        self._speech = AsyncSpeech(http_client)
 
     @property
-    def transcriptions(self) -> Transcriptions:
-        """Access audio transcriptions endpoint."""
+    def transcriptions(self) -> AsyncTranscriptions:
+        """Access async audio transcriptions endpoint."""
         return self._transcriptions
 
     @property
-    def translations(self) -> Translations:
-        """Access audio translations endpoint."""
+    def translations(self) -> AsyncTranslations:
+        """Access async audio translations endpoint."""
         return self._translations
 
     @property
-    def speech(self) -> Speech:
-        """Access text-to-speech endpoint."""
+    def speech(self) -> AsyncSpeech:
+        """Access async text-to-speech endpoint."""
         return self._speech

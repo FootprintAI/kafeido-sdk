@@ -1,4 +1,4 @@
 """Version information for Kafeido SDK."""
 
-__version__ = "0.1.0"
+__version__ = "1.4.0"
 VERSION = __version__

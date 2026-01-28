@@ -40,7 +40,7 @@ class HTTPClient:
         # Build default headers
         self._headers = {
             "Authorization": f"Bearer {api_key}",
-            "User-Agent": "kafeido-python/0.1.0",
+            "User-Agent": "kafeido-python/1.4.0",
             "Content-Type": "application/json",
         }
 
@@ -245,7 +245,7 @@ class AsyncHTTPClient:
         # Build default headers
         self._headers = {
             "Authorization": f"Bearer {api_key}",
-            "User-Agent": "kafeido-python/0.1.0",
+            "User-Agent": "kafeido-python/1.4.0",
             "Content-Type": "application/json",
         }
 
