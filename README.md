@@ -4,7 +4,7 @@
 [![Python Support](https://img.shields.io/pypi/pyversions/kafeido.svg)](https://pypi.org/project/kafeido/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-The official Python SDK for [Kafeido](https://kafeido.app) - An OpenAI-compatible AI inference API providing access to LLM, ASR, OCR, TTS, and Vision models.
+The official Python SDK for [Kafeido](https://api.kafeido.app) - An OpenAI-compatible AI inference API providing access to LLM, ASR, OCR, TTS, and Vision models.
 
 ## Features
 
@@ -463,4 +463,4 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 For issues and questions:
 - GitHub Issues: https://github.com/footprintai/kafeido-sdk/issues
-- Email: info@footprintai.com
+- Email: kafeido@footprint-ai.com
