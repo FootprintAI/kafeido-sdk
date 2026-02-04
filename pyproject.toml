@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = {file = "LICENSE"}
 authors = [
-    {name = "FootprintAI", email = "info@footprintai.com"}
+    {name = "FootprintAI", email = "kafeido@footprint-ai.com"}
 ]
 keywords = ["ai", "ml", "llm", "asr", "ocr", "tts", "vision", "inference", "openai", "kafeido", "gpt", "whisper"]
 classifiers = [
