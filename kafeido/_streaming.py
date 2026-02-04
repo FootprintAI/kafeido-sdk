@@ -59,7 +59,11 @@ class Stream:
                         json_data = json.loads(data)
                         # Cast to target type if it has a model_validate method (Pydantic)
                         if hasattr(self.cast_to, "model_validate"):
-                            yield self.cast_to.model_validate(json_data)
+                            try:
+                                yield self.cast_to.model_validate(json_data)
+                            except Exception:
+                                # Skip validation errors (malformed data)
+                                continue
                         # Otherwise just pass the dict
                         else:
                             yield json_data  # type: ignore
@@ -127,7 +131,11 @@ class AsyncStream:
                     try:
                         json_data = json.loads(data)
                         if hasattr(self.cast_to, "model_validate"):
-                            yield self.cast_to.model_validate(json_data)
+                            try:
+                                yield self.cast_to.model_validate(json_data)
+                            except Exception:
+                                # Skip validation errors (malformed data)
+                                continue
                         else:
                             yield json_data  # type: ignore
                     except json.JSONDecodeError:

@@ -28,15 +28,50 @@ from kafeido.types.audio import (
     Transcription,
     Translation,
     TranscriptionSegment,
+    AsyncTranscriptionResponse,
+    AsyncTranscriptionResult,
 )
 from kafeido.types.models import (
     Model,
     ModelList,
+    ModelStatus,
+    ModelStatusInfo,
+    WarmupResponse,
 )
 from kafeido.types.files import (
     FileObject,
     FileList,
     DeletedFile,
+)
+from kafeido.types.tts import (
+    CreateSpeechAsyncResponse,
+    SpeechResult,
+    GetSpeechResultResponse,
+)
+from kafeido.types.ocr import (
+    OCRRegion,
+    OCRUsage,
+    CreateOCRResponse,
+    CreateOCRAsyncResponse,
+    OCRResult,
+    GetOCRResultResponse,
+)
+from kafeido.types.vision import (
+    VisionImageSource,
+    VisionChatMessage,
+    VisionUsage,
+    CreateVisionResponse,
+    CreateVisionChatResponse,
+    CreateVisionAsyncResponse,
+    GetVisionResultResponse,
+)
+from kafeido.types.jobs import (
+    JobDetail,
+    ColdStartProgress,
+    RequestProgress,
+)
+from kafeido.types.health import (
+    HealthResponse,
 )
 
 __all__ = [
@@ -66,11 +101,41 @@ __all__ = [
     "Transcription",
     "Translation",
     "TranscriptionSegment",
+    "AsyncTranscriptionResponse",
+    "AsyncTranscriptionResult",
     # Models
     "Model",
     "ModelList",
+    "ModelStatus",
+    "ModelStatusInfo",
+    "WarmupResponse",
     # Files
     "FileObject",
     "FileList",
     "DeletedFile",
+    # TTS
+    "CreateSpeechAsyncResponse",
+    "SpeechResult",
+    "GetSpeechResultResponse",
+    # OCR
+    "OCRRegion",
+    "OCRUsage",
+    "CreateOCRResponse",
+    "CreateOCRAsyncResponse",
+    "OCRResult",
+    "GetOCRResultResponse",
+    # Vision
+    "VisionImageSource",
+    "VisionChatMessage",
+    "VisionUsage",
+    "CreateVisionResponse",
+    "CreateVisionChatResponse",
+    "CreateVisionAsyncResponse",
+    "GetVisionResultResponse",
+    # Jobs
+    "JobDetail",
+    "ColdStartProgress",
+    "RequestProgress",
+    # Health
+    "HealthResponse",
 ]

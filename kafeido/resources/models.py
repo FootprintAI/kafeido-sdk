@@ -1,7 +1,7 @@
 """Models resource."""
 
 from kafeido._http_client import HTTPClient
-from kafeido.types.models import Model, ModelList
+from kafeido.types.models import Model, ModelList, ModelStatus, WarmupResponse
 
 
 class Models:
@@ -46,3 +46,29 @@ class Models:
         """
         response_data = self._client.get(f"/v1/models/{model}")
         return Model.model_validate(response_data)
+
+    def status(self, model: str) -> ModelStatus:
+        """Get the status of a model including cold start progress.
+
+        Args:
+            model: The model ID to check status for.
+
+        Returns:
+            ModelStatus with loading status and cold start progress.
+        """
+        response_data = self._client.get(f"/v1/models/{model}/status")
+        return ModelStatus.model_validate(response_data)
+
+    def warmup(self, *, model: str) -> WarmupResponse:
+        """Warmup/prefetch a model to reduce cold start time.
+
+        Args:
+            model: The model ID to warm up.
+
+        Returns:
+            WarmupResponse indicating if model is already warm and ETA.
+        """
+        response_data = self._client.post(
+            "/v1/models/warmup", json={"model_id": model}
+        )
+        return WarmupResponse.model_validate(response_data)

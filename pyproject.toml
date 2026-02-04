@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kafeido"
-version = "0.1.0"
+version = "1.4.0"
 description = "Python SDK for Kafeido AI inference API - OpenAI compatible"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -12,7 +12,7 @@ license = {file = "LICENSE"}
 authors = [
     {name = "FootprintAI", email = "info@footprintai.com"}
 ]
-keywords = ["ai", "ml", "llm", "asr", "ocr", "inference", "openai", "kafeido", "gpt", "whisper"]
+keywords = ["ai", "ml", "llm", "asr", "ocr", "tts", "vision", "inference", "openai", "kafeido", "gpt", "whisper"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

@@ -4,7 +4,7 @@
 [![Python Support](https://img.shields.io/pypi/pyversions/kafeido.svg)](https://pypi.org/project/kafeido/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-The official Python SDK for [Kafeido](https://kafeido.app) - An OpenAI-compatible AI inference API providing access to LLM, ASR, and OCR models.
+The official Python SDK for [Kafeido](https://kafeido.app) - An OpenAI-compatible AI inference API providing access to LLM, ASR, OCR, TTS, and Vision models.
 
 ## Features
 
@@ -13,9 +13,13 @@ The official Python SDK for [Kafeido](https://kafeido.app) - An OpenAI-compatibl
   - **LLM**: `gpt-oss-20b`, `gpt-oss-120b`
   - **ASR**: `whisper-large-v3`, `whisper-turbo`
   - **OCR**: `deepseek-ocr`, `paddle-ocr`
-- **Streaming Support**: Real-time streaming for chat completions
+  - **TTS**: `qwen3-tts`, `xtts-v2`
+  - **Vision**: `llama-3.2-vision-11b`, `llama-3.2-vision-90b`
+- **Streaming Support**: Real-time streaming for chat completions and vision chat
+- **Async Job Support**: Submit long-running jobs and poll for results
 - **Async Support**: Full async/await support for all endpoints
 - **Type Safety**: Comprehensive type hints and Pydantic models
+- **Model Management**: Status checking, warmup/prefetch, and health monitoring
 - **Robust Error Handling**: Detailed exception hierarchy
 
 ## Installation
@@ -170,7 +174,91 @@ with open("audio_spanish.mp3", "rb") as audio_file:
 print(translation.text)  # English translation
 ```
 
+### Text-to-Speech (TTS)
+
+```python
+import time
+
+# Create a TTS job
+job = client.audio.speech.create(
+    model="qwen3-tts",
+    input="Hello! Welcome to Kafeido.",
+    voice="alloy",
+    response_format="mp3",
+)
+
+# Poll for result
+while True:
+    result = client.audio.speech.get_result(job_id=job.job_id)
+    if result.status == "completed":
+        print(f"Download: {result.result.download_url}")
+        break
+    time.sleep(2)
+```
+
+### OCR
+
+```python
+# Sync OCR extraction
+result = client.ocr.extractions.create(
+    model_id="deepseek-ocr",
+    file_id="file-123",
+    mode="markdown",
+)
+print(result.text)
+
+# With bounding boxes (grounding mode)
+result = client.ocr.extractions.create(
+    model_id="deepseek-ocr",
+    file_id="file-123",
+    mode="grounding",
+)
+for region in result.regions:
+    print(f"'{region.text}' at ({region.x1},{region.y1})-({region.x2},{region.y2})")
+```
+
+### Vision
+
+```python
+# Analyze an image
+result = client.vision.analyze.create(
+    model_id="llama-3.2-vision-11b",
+    image_url="https://example.com/photo.jpg",
+    prompt="Describe this image",
+)
+print(result.text)
+
+# Vision chat with streaming
+for chunk in client.vision.chat.create(
+    model_id="llama-3.2-vision-11b",
+    messages=[{
+        "role": "user",
+        "content": "What is shown in this chart?",
+        "images": [{"url": "https://example.com/chart.png"}],
+    }],
+    stream=True,
+):
+    if chunk.text:
+        print(chunk.text, end="", flush=True)
+```
+
 ### Model Management
+
+#### Model Status and Warmup
+
+```python
+# Check model status
+status = client.models.status("whisper-large-v3")
+print(f"Status: {status.status.status}")
+
+# Warmup a cold model
+warmup = client.models.warmup(model="whisper-large-v3")
+print(f"Already warm: {warmup.already_warm}, ETA: {warmup.estimated_seconds}s")
+
+# Health check
+health = client.health()
+print(f"API status: {health.status}, version: {health.version}")
+```
 
 #### List All Models
 
@@ -344,6 +432,16 @@ client = OpenAI(
 
 - `deepseek-ocr` - DeepSeek OCR model (recommended)
 - `paddle-ocr` - PaddleOCR model
+
+### Text-to-Speech (TTS)
+
+- `qwen3-tts` - Qwen3 TTS model (recommended)
+- `xtts-v2` - XTTS-v2 model with voice cloning
+
+### Vision
+
+- `llama-3.2-vision-11b` - Llama 3.2 Vision 11B (recommended)
+- `llama-3.2-vision-90b` - Llama 3.2 Vision 90B (high performance)
 
 ## Contributing
 

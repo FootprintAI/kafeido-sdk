@@ -39,3 +39,20 @@ class Translation(BaseModel):
     language: Optional[str] = None
     duration: Optional[float] = None
     segments: Optional[List[TranscriptionSegment]] = None
+
+
+class AsyncTranscriptionResponse(BaseModel):
+    """Response from creating an async transcription job."""
+
+    job_id: str
+    status: str
+    estimated_completion_time: Optional[str] = None
+
+
+class AsyncTranscriptionResult(BaseModel):
+    """Response from polling an async transcription job."""
+
+    status: str
+    progress: Optional[float] = None
+    result: Optional[Transcription] = None
+    error: Optional[str] = None
