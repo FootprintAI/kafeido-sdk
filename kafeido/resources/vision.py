@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from kafeido._http_client import HTTPClient
 from kafeido._streaming import Stream
@@ -14,12 +14,20 @@ from kafeido.types.vision import (
     VisionChatMessage,
 )
 
+if TYPE_CHECKING:
+    from kafeido._warmup import WarmupHelper
+
 
 class VisionAnalysis:
     """Vision analysis endpoint."""
 
-    def __init__(self, http_client: HTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: HTTPClient,
+        warmup_helper: Optional["WarmupHelper"] = None,
+    ) -> None:
         self._client = http_client
+        self._warmup_helper = warmup_helper
 
     def create(
         self,
@@ -35,6 +43,8 @@ class VisionAnalysis:
         top_p: Optional[float] = None,
         top_k: Optional[int] = None,
         repetition_penalty: Optional[float] = None,
+        wait_for_ready: bool = False,
+        warmup_timeout: Optional[float] = None,
     ) -> CreateVisionResponse:
         """Analyze an image.
 
@@ -50,10 +60,21 @@ class VisionAnalysis:
             top_p: Top-p sampling.
             top_k: Top-k sampling.
             repetition_penalty: Repetition penalty.
+            wait_for_ready: If True, wait for the model to be ready before
+                making the request.
+            warmup_timeout: Maximum seconds to wait for model warmup.
 
         Returns:
             CreateVisionResponse with analysis text.
+
+        Raises:
+            WarmupTimeoutError: If wait_for_ready is True and the model
+                doesn't become ready within the timeout period.
         """
+        # Handle cold start waiting if enabled
+        if wait_for_ready and self._warmup_helper:
+            self._warmup_helper.wait_for_ready(model_id, timeout=warmup_timeout)
+
         body: Dict[str, Any] = {"model_id": model_id}
 
         if storage_key is not None:
@@ -155,8 +176,13 @@ class VisionAnalysis:
 class VisionChat:
     """Vision chat endpoint with streaming support."""
 
-    def __init__(self, http_client: HTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: HTTPClient,
+        warmup_helper: Optional["WarmupHelper"] = None,
+    ) -> None:
         self._client = http_client
+        self._warmup_helper = warmup_helper
 
     def create(
         self,
@@ -170,6 +196,8 @@ class VisionChat:
         top_p: Optional[float] = None,
         top_k: Optional[int] = None,
         repetition_penalty: Optional[float] = None,
+        wait_for_ready: bool = False,
+        warmup_timeout: Optional[float] = None,
     ) -> Union[CreateVisionChatResponse, Stream[CreateVisionChatResponse]]:
         """Chat with images.
 
@@ -183,11 +211,22 @@ class VisionChat:
             top_p: Top-p sampling.
             top_k: Top-k sampling.
             repetition_penalty: Repetition penalty.
+            wait_for_ready: If True, wait for the model to be ready before
+                making the request.
+            warmup_timeout: Maximum seconds to wait for model warmup.
 
         Returns:
             Stream of CreateVisionChatResponse chunks if streaming,
             or a single CreateVisionChatResponse if not.
+
+        Raises:
+            WarmupTimeoutError: If wait_for_ready is True and the model
+                doesn't become ready within the timeout period.
         """
+        # Handle cold start waiting if enabled
+        if wait_for_ready and self._warmup_helper:
+            self._warmup_helper.wait_for_ready(model_id, timeout=warmup_timeout)
+
         body: Dict[str, Any] = {
             "messages": messages,
             "model_id": model_id,
@@ -220,10 +259,14 @@ class VisionChat:
 class Vision:
     """Vision resource."""
 
-    def __init__(self, http_client: HTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: HTTPClient,
+        warmup_helper: Optional["WarmupHelper"] = None,
+    ) -> None:
         self._client = http_client
-        self._analyze = VisionAnalysis(http_client)
-        self._chat = VisionChat(http_client)
+        self._analyze = VisionAnalysis(http_client, warmup_helper)
+        self._chat = VisionChat(http_client, warmup_helper)
 
     @property
     def analyze(self) -> VisionAnalysis:

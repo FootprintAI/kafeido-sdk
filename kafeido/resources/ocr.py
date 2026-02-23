@@ -1,6 +1,6 @@
 """OCR resource."""
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from kafeido._http_client import HTTPClient
 from kafeido.types.ocr import (
@@ -9,12 +9,20 @@ from kafeido.types.ocr import (
     GetOCRResultResponse,
 )
 
+if TYPE_CHECKING:
+    from kafeido._warmup import WarmupHelper
+
 
 class OCRExtractions:
     """OCR extraction endpoint."""
 
-    def __init__(self, http_client: HTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: HTTPClient,
+        warmup_helper: Optional["WarmupHelper"] = None,
+    ) -> None:
         self._client = http_client
+        self._warmup_helper = warmup_helper
 
     def create(
         self,
@@ -27,6 +35,8 @@ class OCRExtractions:
         language: Optional[str] = None,
         custom_prompt: Optional[str] = None,
         max_tokens: Optional[int] = None,
+        wait_for_ready: bool = False,
+        warmup_timeout: Optional[float] = None,
     ) -> CreateOCRResponse:
         """Extract text from an image.
 
@@ -39,10 +49,21 @@ class OCRExtractions:
             language: Language hint (ISO-639-1 code).
             custom_prompt: Custom prompt for the OCR model.
             max_tokens: Maximum tokens in the response.
+            wait_for_ready: If True, wait for the model to be ready before
+                making the request.
+            warmup_timeout: Maximum seconds to wait for model warmup.
 
         Returns:
             CreateOCRResponse with extracted text and optional regions.
+
+        Raises:
+            WarmupTimeoutError: If wait_for_ready is True and the model
+                doesn't become ready within the timeout period.
         """
+        # Handle cold start waiting if enabled
+        if wait_for_ready and self._warmup_helper:
+            self._warmup_helper.wait_for_ready(model_id, timeout=warmup_timeout)
+
         body = {"model_id": model_id}
 
         if file_id is not None:
@@ -126,9 +147,13 @@ class OCRExtractions:
 class OCR:
     """OCR resource."""
 
-    def __init__(self, http_client: HTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: HTTPClient,
+        warmup_helper: Optional["WarmupHelper"] = None,
+    ) -> None:
         self._client = http_client
-        self._extractions = OCRExtractions(http_client)
+        self._extractions = OCRExtractions(http_client, warmup_helper)
 
     @property
     def extractions(self) -> OCRExtractions:

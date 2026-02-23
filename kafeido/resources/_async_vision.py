@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 from kafeido._http_client import AsyncHTTPClient
 from kafeido._streaming import AsyncStream
@@ -13,12 +13,20 @@ from kafeido.types.vision import (
     GetVisionResultResponse,
 )
 
+if TYPE_CHECKING:
+    from kafeido._warmup import AsyncWarmupHelper
+
 
 class AsyncVisionAnalysis:
     """Async vision analysis endpoint."""
 
-    def __init__(self, http_client: AsyncHTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: AsyncHTTPClient,
+        warmup_helper: Optional["AsyncWarmupHelper"] = None,
+    ) -> None:
         self._client = http_client
+        self._warmup_helper = warmup_helper
 
     async def create(
         self,
@@ -34,8 +42,37 @@ class AsyncVisionAnalysis:
         top_p: Optional[float] = None,
         top_k: Optional[int] = None,
         repetition_penalty: Optional[float] = None,
+        wait_for_ready: bool = False,
+        warmup_timeout: Optional[float] = None,
     ) -> CreateVisionResponse:
-        """Analyze an image asynchronously."""
+        """Analyze an image asynchronously.
+
+        Args:
+            model_id: Vision model ID.
+            storage_key: Storage key of the image.
+            image_base64: Base64-encoded image.
+            image_url: URL of the image.
+            prompt: Analysis prompt.
+            mode: Analysis mode.
+            temperature: Sampling temperature.
+            max_tokens: Maximum tokens.
+            top_p: Top-p sampling.
+            top_k: Top-k sampling.
+            repetition_penalty: Repetition penalty.
+            wait_for_ready: If True, wait for the model to be ready.
+            warmup_timeout: Maximum seconds to wait for warmup.
+
+        Returns:
+            CreateVisionResponse with analysis text.
+
+        Raises:
+            WarmupTimeoutError: If wait_for_ready is True and the model
+                doesn't become ready within the timeout period.
+        """
+        # Handle cold start waiting if enabled
+        if wait_for_ready and self._warmup_helper:
+            await self._warmup_helper.wait_for_ready(model_id, timeout=warmup_timeout)
+
         body: Dict[str, Any] = {"model_id": model_id}
 
         if storage_key is not None:
@@ -113,8 +150,13 @@ class AsyncVisionAnalysis:
 class AsyncVisionChat:
     """Async vision chat endpoint with streaming support."""
 
-    def __init__(self, http_client: AsyncHTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: AsyncHTTPClient,
+        warmup_helper: Optional["AsyncWarmupHelper"] = None,
+    ) -> None:
         self._client = http_client
+        self._warmup_helper = warmup_helper
 
     async def create(
         self,
@@ -128,8 +170,35 @@ class AsyncVisionChat:
         top_p: Optional[float] = None,
         top_k: Optional[int] = None,
         repetition_penalty: Optional[float] = None,
+        wait_for_ready: bool = False,
+        warmup_timeout: Optional[float] = None,
     ) -> Union[CreateVisionChatResponse, AsyncStream[CreateVisionChatResponse]]:
-        """Chat with images asynchronously."""
+        """Chat with images asynchronously.
+
+        Args:
+            messages: List of vision chat messages.
+            model_id: Vision model ID.
+            stream: Whether to stream the response.
+            conversation_id: Conversation ID for multi-turn.
+            temperature: Sampling temperature.
+            max_tokens: Maximum tokens.
+            top_p: Top-p sampling.
+            top_k: Top-k sampling.
+            repetition_penalty: Repetition penalty.
+            wait_for_ready: If True, wait for the model to be ready.
+            warmup_timeout: Maximum seconds to wait for warmup.
+
+        Returns:
+            Stream or CreateVisionChatResponse.
+
+        Raises:
+            WarmupTimeoutError: If wait_for_ready is True and the model
+                doesn't become ready within the timeout period.
+        """
+        # Handle cold start waiting if enabled
+        if wait_for_ready and self._warmup_helper:
+            await self._warmup_helper.wait_for_ready(model_id, timeout=warmup_timeout)
+
         body: Dict[str, Any] = {
             "messages": messages,
             "model_id": model_id,
@@ -162,10 +231,14 @@ class AsyncVisionChat:
 class AsyncVision:
     """Async vision resource."""
 
-    def __init__(self, http_client: AsyncHTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: AsyncHTTPClient,
+        warmup_helper: Optional["AsyncWarmupHelper"] = None,
+    ) -> None:
         self._client = http_client
-        self._analyze = AsyncVisionAnalysis(http_client)
-        self._chat = AsyncVisionChat(http_client)
+        self._analyze = AsyncVisionAnalysis(http_client, warmup_helper)
+        self._chat = AsyncVisionChat(http_client, warmup_helper)
 
     @property
     def analyze(self) -> AsyncVisionAnalysis:

@@ -18,6 +18,7 @@ Example:
 from kafeido.version import __version__
 from kafeido.client import OpenAI
 from kafeido._async_client import AsyncOpenAI
+from kafeido._warmup import WarmupTimeoutError
 from kafeido.types import (
     # Errors
     OpenAIError,
@@ -95,6 +96,7 @@ __all__ = [
     "UnprocessableEntityError",
     "RateLimitError",
     "InternalServerError",
+    "WarmupTimeoutError",
     # Chat
     "ChatCompletion",
     "ChatCompletionChunk",
