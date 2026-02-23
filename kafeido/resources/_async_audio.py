@@ -1,6 +1,6 @@
 """Async audio transcription and translation resources."""
 
-from typing import BinaryIO, Literal, Optional, Union
+from typing import TYPE_CHECKING, BinaryIO, Literal, Optional, Union
 
 from kafeido._http_client import AsyncHTTPClient
 from kafeido.types.audio import (
@@ -11,6 +11,9 @@ from kafeido.types.audio import (
 )
 from kafeido.types.tts import CreateSpeechAsyncResponse, GetSpeechResultResponse
 
+if TYPE_CHECKING:
+    from kafeido._warmup import AsyncWarmupHelper
+
 
 # Type alias for file inputs
 FileTypes = Union[BinaryIO, bytes]
@@ -19,13 +22,19 @@ FileTypes = Union[BinaryIO, bytes]
 class AsyncTranscriptions:
     """Async audio transcriptions endpoint."""
 
-    def __init__(self, http_client: AsyncHTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: AsyncHTTPClient,
+        warmup_helper: Optional["AsyncWarmupHelper"] = None,
+    ) -> None:
         """Initialize async transcriptions resource.
 
         Args:
             http_client: The async HTTP client to use for requests.
+            warmup_helper: Optional warmup helper for cold start handling.
         """
         self._client = http_client
+        self._warmup_helper = warmup_helper
 
     async def create(
         self,
@@ -37,6 +46,8 @@ class AsyncTranscriptions:
         response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] = "json",
         temperature: Optional[float] = None,
         timestamp_granularities: Optional[list[str]] = None,
+        wait_for_ready: bool = False,
+        warmup_timeout: Optional[float] = None,
     ) -> Transcription:
         """Transcribe audio to text asynchronously.
 
@@ -48,19 +59,31 @@ class AsyncTranscriptions:
             response_format: Format of the response.
             temperature: Sampling temperature (0-1).
             timestamp_granularities: Granularity of timestamps.
+            wait_for_ready: If True, wait for the model to be ready before
+                making the request.
+            warmup_timeout: Maximum seconds to wait for model warmup.
 
         Returns:
             Transcription with text and optional segments.
+
+        Raises:
+            WarmupTimeoutError: If wait_for_ready is True and the model
+                doesn't become ready within the timeout period.
 
         Example:
             >>> client = AsyncOpenAI(api_key="sk-...")
             >>> with open("audio.mp3", "rb") as f:
             ...     transcript = await client.audio.transcriptions.create(
             ...         file=f,
-            ...         model="whisper-large-v3"
+            ...         model="whisper-large-v3",
+            ...         wait_for_ready=True,
             ...     )
             >>> print(transcript.text)
         """
+        # Handle cold start waiting if enabled
+        if wait_for_ready and self._warmup_helper:
+            await self._warmup_helper.wait_for_ready(model, timeout=warmup_timeout)
+
         # Prepare multipart upload
         files = {"file": file}
         data = {
@@ -127,13 +150,19 @@ class AsyncTranscriptions:
 class AsyncTranslations:
     """Async audio translations endpoint."""
 
-    def __init__(self, http_client: AsyncHTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: AsyncHTTPClient,
+        warmup_helper: Optional["AsyncWarmupHelper"] = None,
+    ) -> None:
         """Initialize async translations resource.
 
         Args:
             http_client: The async HTTP client to use for requests.
+            warmup_helper: Optional warmup helper for cold start handling.
         """
         self._client = http_client
+        self._warmup_helper = warmup_helper
 
     async def create(
         self,
@@ -143,6 +172,8 @@ class AsyncTranslations:
         prompt: Optional[str] = None,
         response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] = "json",
         temperature: Optional[float] = None,
+        wait_for_ready: bool = False,
+        warmup_timeout: Optional[float] = None,
     ) -> Translation:
         """Translate audio to English asynchronously.
 
@@ -152,19 +183,31 @@ class AsyncTranslations:
             prompt: Optional text to guide the model's style.
             response_format: Format of the response.
             temperature: Sampling temperature (0-1).
+            wait_for_ready: If True, wait for the model to be ready before
+                making the request.
+            warmup_timeout: Maximum seconds to wait for model warmup.
 
         Returns:
             Translation with English text.
+
+        Raises:
+            WarmupTimeoutError: If wait_for_ready is True and the model
+                doesn't become ready within the timeout period.
 
         Example:
             >>> client = AsyncOpenAI(api_key="sk-...")
             >>> with open("audio_spanish.mp3", "rb") as f:
             ...     translation = await client.audio.translations.create(
             ...         file=f,
-            ...         model="whisper-large-v3"
+            ...         model="whisper-large-v3",
+            ...         wait_for_ready=True,
             ...     )
             >>> print(translation.text)  # English translation
         """
+        # Handle cold start waiting if enabled
+        if wait_for_ready and self._warmup_helper:
+            await self._warmup_helper.wait_for_ready(model, timeout=warmup_timeout)
+
         # Prepare multipart upload
         files = {"file": file}
         data = {
@@ -188,8 +231,13 @@ class AsyncTranslations:
 class AsyncSpeech:
     """Async text-to-speech endpoint."""
 
-    def __init__(self, http_client: AsyncHTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: AsyncHTTPClient,
+        warmup_helper: Optional["AsyncWarmupHelper"] = None,
+    ) -> None:
         self._client = http_client
+        self._warmup_helper = warmup_helper
 
     async def create(
         self,
@@ -207,8 +255,39 @@ class AsyncSpeech:
         top_p: Optional[float] = None,
         top_k: Optional[int] = None,
         max_tokens: Optional[int] = None,
+        wait_for_ready: bool = False,
+        warmup_timeout: Optional[float] = None,
     ) -> CreateSpeechAsyncResponse:
-        """Create a text-to-speech job asynchronously."""
+        """Create a text-to-speech job asynchronously.
+
+        Args:
+            model: TTS model ID.
+            input: Text to synthesize.
+            voice: Voice preset.
+            response_format: Audio format.
+            speed: Speech speed.
+            reference_audio_id: File ID for voice cloning.
+            reference_audio_key: Storage key for voice cloning.
+            language: Language code.
+            system_prompt: Scene description.
+            temperature: Sampling temperature.
+            top_p: Top-p sampling.
+            top_k: Top-k sampling.
+            max_tokens: Maximum tokens.
+            wait_for_ready: If True, wait for the model to be ready.
+            warmup_timeout: Maximum seconds to wait for warmup.
+
+        Returns:
+            CreateSpeechAsyncResponse with job_id.
+
+        Raises:
+            WarmupTimeoutError: If wait_for_ready is True and the model
+                doesn't become ready within the timeout period.
+        """
+        # Handle cold start waiting if enabled
+        if wait_for_ready and self._warmup_helper:
+            await self._warmup_helper.wait_for_ready(model, timeout=warmup_timeout)
+
         body: dict = {
             "model": model,
             "input": input,
@@ -248,16 +327,21 @@ class AsyncSpeech:
 class AsyncAudio:
     """Async audio resource."""
 
-    def __init__(self, http_client: AsyncHTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: AsyncHTTPClient,
+        warmup_helper: Optional["AsyncWarmupHelper"] = None,
+    ) -> None:
         """Initialize async audio resource.
 
         Args:
             http_client: The async HTTP client to use for requests.
+            warmup_helper: Optional warmup helper for cold start handling.
         """
         self._client = http_client
-        self._transcriptions = AsyncTranscriptions(http_client)
-        self._translations = AsyncTranslations(http_client)
-        self._speech = AsyncSpeech(http_client)
+        self._transcriptions = AsyncTranscriptions(http_client, warmup_helper)
+        self._translations = AsyncTranslations(http_client, warmup_helper)
+        self._speech = AsyncSpeech(http_client, warmup_helper)
 
     @property
     def transcriptions(self) -> AsyncTranscriptions:

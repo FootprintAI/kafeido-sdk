@@ -1,6 +1,6 @@
 """Async OCR resource."""
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from kafeido._http_client import AsyncHTTPClient
 from kafeido.types.ocr import (
@@ -9,12 +9,20 @@ from kafeido.types.ocr import (
     GetOCRResultResponse,
 )
 
+if TYPE_CHECKING:
+    from kafeido._warmup import AsyncWarmupHelper
+
 
 class AsyncOCRExtractions:
     """Async OCR extraction endpoint."""
 
-    def __init__(self, http_client: AsyncHTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: AsyncHTTPClient,
+        warmup_helper: Optional["AsyncWarmupHelper"] = None,
+    ) -> None:
         self._client = http_client
+        self._warmup_helper = warmup_helper
 
     async def create(
         self,
@@ -27,8 +35,34 @@ class AsyncOCRExtractions:
         language: Optional[str] = None,
         custom_prompt: Optional[str] = None,
         max_tokens: Optional[int] = None,
+        wait_for_ready: bool = False,
+        warmup_timeout: Optional[float] = None,
     ) -> CreateOCRResponse:
-        """Extract text from an image asynchronously."""
+        """Extract text from an image asynchronously.
+
+        Args:
+            model_id: OCR model ID.
+            file_id: ID of a previously uploaded file.
+            storage_key: Storage key from upload service.
+            mode: OCR mode.
+            resolution: Resolution setting.
+            language: Language hint.
+            custom_prompt: Custom prompt.
+            max_tokens: Maximum tokens.
+            wait_for_ready: If True, wait for the model to be ready.
+            warmup_timeout: Maximum seconds to wait for warmup.
+
+        Returns:
+            CreateOCRResponse with extracted text.
+
+        Raises:
+            WarmupTimeoutError: If wait_for_ready is True and the model
+                doesn't become ready within the timeout period.
+        """
+        # Handle cold start waiting if enabled
+        if wait_for_ready and self._warmup_helper:
+            await self._warmup_helper.wait_for_ready(model_id, timeout=warmup_timeout)
+
         body = {"model_id": model_id}
 
         if file_id is not None:
@@ -91,9 +125,13 @@ class AsyncOCRExtractions:
 class AsyncOCR:
     """Async OCR resource."""
 
-    def __init__(self, http_client: AsyncHTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: AsyncHTTPClient,
+        warmup_helper: Optional["AsyncWarmupHelper"] = None,
+    ) -> None:
         self._client = http_client
-        self._extractions = AsyncOCRExtractions(http_client)
+        self._extractions = AsyncOCRExtractions(http_client, warmup_helper)
 
     @property
     def extractions(self) -> AsyncOCRExtractions:

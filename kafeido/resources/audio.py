@@ -1,6 +1,6 @@
 """Audio transcription and translation resources."""
 
-from typing import BinaryIO, Literal, Optional, Union
+from typing import TYPE_CHECKING, BinaryIO, Literal, Optional, Union
 
 from kafeido._http_client import HTTPClient
 from kafeido.types.audio import (
@@ -11,6 +11,9 @@ from kafeido.types.audio import (
 )
 from kafeido.types.tts import CreateSpeechAsyncResponse, GetSpeechResultResponse
 
+if TYPE_CHECKING:
+    from kafeido._warmup import WarmupHelper
+
 
 # Type alias for file inputs
 FileTypes = Union[BinaryIO, bytes]
@@ -19,13 +22,19 @@ FileTypes = Union[BinaryIO, bytes]
 class Transcriptions:
     """Audio transcriptions endpoint."""
 
-    def __init__(self, http_client: HTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: HTTPClient,
+        warmup_helper: Optional["WarmupHelper"] = None,
+    ) -> None:
         """Initialize transcriptions resource.
 
         Args:
             http_client: The HTTP client to use for requests.
+            warmup_helper: Optional warmup helper for cold start handling.
         """
         self._client = http_client
+        self._warmup_helper = warmup_helper
 
     def create(
         self,
@@ -37,6 +46,8 @@ class Transcriptions:
         response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] = "json",
         temperature: Optional[float] = None,
         timestamp_granularities: Optional[list[str]] = None,
+        wait_for_ready: bool = False,
+        warmup_timeout: Optional[float] = None,
     ) -> Transcription:
         """Transcribe audio to text.
 
@@ -48,19 +59,31 @@ class Transcriptions:
             response_format: Format of the response.
             temperature: Sampling temperature (0-1).
             timestamp_granularities: Granularity of timestamps.
+            wait_for_ready: If True, wait for the model to be ready before
+                making the request.
+            warmup_timeout: Maximum seconds to wait for model warmup.
 
         Returns:
             Transcription with text and optional segments.
+
+        Raises:
+            WarmupTimeoutError: If wait_for_ready is True and the model
+                doesn't become ready within the timeout period.
 
         Example:
             >>> client = OpenAI(api_key="sk-...")
             >>> with open("audio.mp3", "rb") as f:
             ...     transcript = client.audio.transcriptions.create(
             ...         file=f,
-            ...         model="whisper-large-v3"
+            ...         model="whisper-large-v3",
+            ...         wait_for_ready=True,
             ...     )
             >>> print(transcript.text)
         """
+        # Handle cold start waiting if enabled
+        if wait_for_ready and self._warmup_helper:
+            self._warmup_helper.wait_for_ready(model, timeout=warmup_timeout)
+
         # Prepare multipart upload
         files = {"file": file}
         data = {
@@ -147,13 +170,19 @@ class Transcriptions:
 class Translations:
     """Audio translations endpoint."""
 
-    def __init__(self, http_client: HTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: HTTPClient,
+        warmup_helper: Optional["WarmupHelper"] = None,
+    ) -> None:
         """Initialize translations resource.
 
         Args:
             http_client: The HTTP client to use for requests.
+            warmup_helper: Optional warmup helper for cold start handling.
         """
         self._client = http_client
+        self._warmup_helper = warmup_helper
 
     def create(
         self,
@@ -163,6 +192,8 @@ class Translations:
         prompt: Optional[str] = None,
         response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] = "json",
         temperature: Optional[float] = None,
+        wait_for_ready: bool = False,
+        warmup_timeout: Optional[float] = None,
     ) -> Translation:
         """Translate audio to English.
 
@@ -172,19 +203,31 @@ class Translations:
             prompt: Optional text to guide the model's style.
             response_format: Format of the response.
             temperature: Sampling temperature (0-1).
+            wait_for_ready: If True, wait for the model to be ready before
+                making the request.
+            warmup_timeout: Maximum seconds to wait for model warmup.
 
         Returns:
             Translation with English text.
+
+        Raises:
+            WarmupTimeoutError: If wait_for_ready is True and the model
+                doesn't become ready within the timeout period.
 
         Example:
             >>> client = OpenAI(api_key="sk-...")
             >>> with open("audio_spanish.mp3", "rb") as f:
             ...     translation = client.audio.translations.create(
             ...         file=f,
-            ...         model="whisper-large-v3"
+            ...         model="whisper-large-v3",
+            ...         wait_for_ready=True,
             ...     )
             >>> print(translation.text)  # English translation
         """
+        # Handle cold start waiting if enabled
+        if wait_for_ready and self._warmup_helper:
+            self._warmup_helper.wait_for_ready(model, timeout=warmup_timeout)
+
         # Prepare multipart upload
         files = {"file": file}
         data = {
@@ -208,8 +251,13 @@ class Translations:
 class Speech:
     """Text-to-speech endpoint."""
 
-    def __init__(self, http_client: HTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: HTTPClient,
+        warmup_helper: Optional["WarmupHelper"] = None,
+    ) -> None:
         self._client = http_client
+        self._warmup_helper = warmup_helper
 
     def create(
         self,
@@ -227,6 +275,8 @@ class Speech:
         top_p: Optional[float] = None,
         top_k: Optional[int] = None,
         max_tokens: Optional[int] = None,
+        wait_for_ready: bool = False,
+        warmup_timeout: Optional[float] = None,
     ) -> CreateSpeechAsyncResponse:
         """Create a text-to-speech job.
 
@@ -244,10 +294,21 @@ class Speech:
             top_p: Top-p sampling.
             top_k: Top-k sampling.
             max_tokens: Maximum tokens.
+            wait_for_ready: If True, wait for the model to be ready before
+                making the request.
+            warmup_timeout: Maximum seconds to wait for model warmup.
 
         Returns:
             CreateSpeechAsyncResponse with job_id for polling.
+
+        Raises:
+            WarmupTimeoutError: If wait_for_ready is True and the model
+                doesn't become ready within the timeout period.
         """
+        # Handle cold start waiting if enabled
+        if wait_for_ready and self._warmup_helper:
+            self._warmup_helper.wait_for_ready(model, timeout=warmup_timeout)
+
         body: dict = {
             "model": model,
             "input": input,
@@ -294,16 +355,21 @@ class Speech:
 class Audio:
     """Audio resource."""
 
-    def __init__(self, http_client: HTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: HTTPClient,
+        warmup_helper: Optional["WarmupHelper"] = None,
+    ) -> None:
         """Initialize audio resource.
 
         Args:
             http_client: The HTTP client to use for requests.
+            warmup_helper: Optional warmup helper for cold start handling.
         """
         self._client = http_client
-        self._transcriptions = Transcriptions(http_client)
-        self._translations = Translations(http_client)
-        self._speech = Speech(http_client)
+        self._transcriptions = Transcriptions(http_client, warmup_helper)
+        self._translations = Translations(http_client, warmup_helper)
+        self._speech = Speech(http_client, warmup_helper)
 
     @property
     def transcriptions(self) -> Transcriptions:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
 import httpx
 
@@ -14,17 +14,26 @@ from kafeido.types.chat import (
     ChatCompletionMessageParam,
 )
 
+if TYPE_CHECKING:
+    from kafeido._warmup import AsyncWarmupHelper
+
 
 class AsyncCompletions:
     """Async chat completions endpoint."""
 
-    def __init__(self, http_client: AsyncHTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: AsyncHTTPClient,
+        warmup_helper: Optional["AsyncWarmupHelper"] = None,
+    ) -> None:
         """Initialize async completions resource.
 
         Args:
             http_client: The async HTTP client to use for requests.
+            warmup_helper: Optional warmup helper for cold start handling.
         """
         self._client = http_client
+        self._warmup_helper = warmup_helper
 
     async def create(
         self,
@@ -47,6 +56,8 @@ class AsyncCompletions:
         tools: Optional[List[Dict[str, Any]]] = None,
         tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
         user: Optional[str] = None,
+        wait_for_ready: bool = False,
+        warmup_timeout: Optional[float] = None,
     ) -> Union[ChatCompletion, AsyncStream[ChatCompletionChunk]]:
         """Create a chat completion asynchronously.
 
@@ -69,18 +80,30 @@ class AsyncCompletions:
             tools: List of tools the model can call.
             tool_choice: Controls which tool is called.
             user: Unique identifier for the end-user.
+            wait_for_ready: If True, wait for the model to be ready before
+                making the request. This handles cold starts automatically.
+            warmup_timeout: Maximum seconds to wait for model warmup.
 
         Returns:
             ChatCompletion or AsyncStream[ChatCompletionChunk] if streaming.
+
+        Raises:
+            WarmupTimeoutError: If wait_for_ready is True and the model
+                doesn't become ready within the timeout period.
 
         Example:
             >>> client = AsyncOpenAI(api_key="sk-...")
             >>> response = await client.chat.completions.create(
             ...     model="gpt-oss-20b",
-            ...     messages=[{"role": "user", "content": "Hello!"}]
+            ...     messages=[{"role": "user", "content": "Hello!"}],
+            ...     wait_for_ready=True,
             ... )
             >>> print(response.choices[0].message.content)
         """
+        # Handle cold start waiting if enabled
+        if wait_for_ready and self._warmup_helper:
+            await self._warmup_helper.wait_for_ready(model, timeout=warmup_timeout)
+
         # Build request body
         body: Dict[str, Any] = {
             "model": model,
@@ -143,14 +166,19 @@ class AsyncCompletions:
 class AsyncChat:
     """Async chat resource."""
 
-    def __init__(self, http_client: AsyncHTTPClient) -> None:
+    def __init__(
+        self,
+        http_client: AsyncHTTPClient,
+        warmup_helper: Optional["AsyncWarmupHelper"] = None,
+    ) -> None:
         """Initialize async chat resource.
 
         Args:
             http_client: The async HTTP client to use for requests.
+            warmup_helper: Optional warmup helper for cold start handling.
         """
         self._client = http_client
-        self._completions = AsyncCompletions(http_client)
+        self._completions = AsyncCompletions(http_client, warmup_helper)
 
     @property
     def completions(self) -> AsyncCompletions:

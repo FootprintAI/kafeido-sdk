@@ -7,6 +7,7 @@ from typing import Optional
 
 from kafeido._auth import get_api_key
 from kafeido._http_client import AsyncHTTPClient
+from kafeido._warmup import AsyncWarmupHelper
 from kafeido.resources._async_chat import AsyncChat
 from kafeido.resources._async_audio import AsyncAudio
 from kafeido.resources._async_models import AsyncModels
@@ -76,13 +77,21 @@ class AsyncOpenAI:
             max_retries=max_retries,
         )
 
-        # Initialize resources
-        self._chat = AsyncChat(self._http_client)
-        self._audio = AsyncAudio(self._http_client)
+        # Initialize models resource first (needed for warmup helper)
         self._models = AsyncModels(self._http_client)
+
+        # Initialize warmup helper for cold start handling
+        self._warmup_helper = AsyncWarmupHelper(
+            status_fn=self._models.status,
+            warmup_fn=lambda m: self._models.warmup(model=m),
+        )
+
+        # Initialize resources with warmup helper
+        self._chat = AsyncChat(self._http_client, self._warmup_helper)
+        self._audio = AsyncAudio(self._http_client, self._warmup_helper)
         self._files = AsyncFiles(self._http_client)
-        self._ocr = AsyncOCR(self._http_client)
-        self._vision = AsyncVision(self._http_client)
+        self._ocr = AsyncOCR(self._http_client, self._warmup_helper)
+        self._vision = AsyncVision(self._http_client, self._warmup_helper)
         self._jobs = AsyncJobs(self._http_client)
 
     @property

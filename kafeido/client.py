@@ -5,6 +5,7 @@ from typing import Optional
 
 from kafeido._auth import get_api_key
 from kafeido._http_client import HTTPClient
+from kafeido._warmup import WarmupHelper
 from kafeido.resources.chat import Chat
 from kafeido.resources.audio import Audio
 from kafeido.resources.models import Models
@@ -79,13 +80,21 @@ class OpenAI:
             max_retries=max_retries,
         )
 
-        # Initialize resources
-        self._chat = Chat(self._http_client)
-        self._audio = Audio(self._http_client)
+        # Initialize models resource first (needed for warmup helper)
         self._models = Models(self._http_client)
+
+        # Initialize warmup helper for cold start handling
+        self._warmup_helper = WarmupHelper(
+            status_fn=self._models.status,
+            warmup_fn=lambda m: self._models.warmup(model=m),
+        )
+
+        # Initialize resources with warmup helper
+        self._chat = Chat(self._http_client, self._warmup_helper)
+        self._audio = Audio(self._http_client, self._warmup_helper)
         self._files = Files(self._http_client)
-        self._ocr = OCR(self._http_client)
-        self._vision = Vision(self._http_client)
+        self._ocr = OCR(self._http_client, self._warmup_helper)
+        self._vision = Vision(self._http_client, self._warmup_helper)
         self._jobs = Jobs(self._http_client)
 
     @property
