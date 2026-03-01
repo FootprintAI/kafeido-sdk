@@ -30,6 +30,8 @@ from kafeido.types.audio import (
     TranscriptionSegment,
     AsyncTranscriptionResponse,
     AsyncTranscriptionResult,
+    StreamingSegment,
+    StreamingTranscriptionResponse,
 )
 from kafeido.types.models import (
     Model,
@@ -103,6 +105,8 @@ __all__ = [
     "TranscriptionSegment",
     "AsyncTranscriptionResponse",
     "AsyncTranscriptionResult",
+    "StreamingSegment",
+    "StreamingTranscriptionResponse",
     # Models
     "Model",
     "ModelList",

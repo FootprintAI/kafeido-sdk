@@ -1,6 +1,6 @@
 """Audio transcription and translation types - OpenAI compatible."""
 
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -56,3 +56,20 @@ class AsyncTranscriptionResult(BaseModel):
     progress: Optional[float] = None
     result: Optional[Transcription] = None
     error: Optional[str] = None
+
+
+class StreamingSegment(BaseModel):
+    """A segment from real-time streaming transcription."""
+
+    start: float
+    end: float
+    text: str
+    completed: bool
+
+
+class StreamingTranscriptionResponse(BaseModel):
+    """A single response from the streaming transcription WebSocket."""
+
+    segments: List[StreamingSegment] = []
+    language: Optional[str] = None
+    language_prob: Optional[float] = None
