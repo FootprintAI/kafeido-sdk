@@ -43,6 +43,8 @@ from kafeido.types import (
     Translation,
     AsyncTranscriptionResponse,
     AsyncTranscriptionResult,
+    StreamingSegment,
+    StreamingTranscriptionResponse,
     # Models
     Model,
     ModelList,
@@ -107,6 +109,8 @@ __all__ = [
     "Translation",
     "AsyncTranscriptionResponse",
     "AsyncTranscriptionResult",
+    "StreamingSegment",
+    "StreamingTranscriptionResponse",
     # Models
     "Model",
     "ModelList",

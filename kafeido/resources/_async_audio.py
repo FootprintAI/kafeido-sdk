@@ -1,8 +1,9 @@
 """Async audio transcription and translation resources."""
 
-from typing import TYPE_CHECKING, BinaryIO, Literal, Optional, Union
+from typing import TYPE_CHECKING, Any, BinaryIO, Dict, Literal, Optional, Union
 
 from kafeido._http_client import AsyncHTTPClient
+from kafeido._streaming_transcription import AsyncStreamingTranscription, _build_ws_url
 from kafeido.types.audio import (
     AsyncTranscriptionResponse,
     AsyncTranscriptionResult,
@@ -145,6 +146,53 @@ class AsyncTranscriptions:
             f"/v1/audio/transcriptions/async/{job_id}"
         )
         return AsyncTranscriptionResult.model_validate(response_data)
+
+    async def stream(
+        self,
+        *,
+        model: str,
+        language: Optional[str] = None,
+        task: Optional[str] = None,
+        use_vad: Optional[bool] = None,
+    ) -> AsyncStreamingTranscription:
+        """Open a WebSocket for real-time streaming transcription.
+
+        Args:
+            model: Model ID (e.g., "whisper-large-v3").
+            language: Language of the audio (ISO-639-1 code).
+            task: Task type ("transcribe" or "translate").
+            use_vad: Whether to enable Voice Activity Detection.
+
+        Returns:
+            An AsyncStreamingTranscription session that can send audio and
+            receive transcription segments.
+
+        Example:
+            >>> stream = await client.audio.transcriptions.stream(
+            ...     model="whisper-large-v3", language="en"
+            ... )
+            >>> async with stream:
+            ...     await stream.send(audio_bytes)
+            ...     async for response in stream:
+            ...         for seg in response.segments:
+            ...             print(seg.text)
+        """
+        from websockets.asyncio.client import connect as ws_async_connect
+
+        ws_url = _build_ws_url(self._client.base_url)
+        config: Dict[str, Any] = {"model": model}
+        if language is not None:
+            config["language"] = language
+        if task is not None:
+            config["task"] = task
+        if use_vad is not None:
+            config["use_vad"] = use_vad
+
+        headers = {"Authorization": f"Bearer {self._client.api_key}"}
+        ws = await ws_async_connect(ws_url, additional_headers=headers)
+        session = AsyncStreamingTranscription(ws=ws, config=config)
+        await session._send_config()
+        return session
 
 
 class AsyncTranslations:
