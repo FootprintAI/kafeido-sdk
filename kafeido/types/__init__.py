@@ -1,5 +1,19 @@
 """Type definitions for Kafeido SDK."""
 
+from kafeido.types.enums import (
+    ModelId,
+    ModelFamily,
+    ModelFormat,
+    ModelStatusEnum,
+    JobStatus,
+    ColdStartStage,
+    RequestPhase,
+    PlanTier,
+    OCRMode,
+    OCRResolution,
+    TTSLanguage,
+    VisionAnalysisMode,
+)
 from kafeido.types.errors import (
     OpenAIError,
     APIError,
@@ -28,6 +42,7 @@ from kafeido.types.audio import (
     Transcription,
     Translation,
     TranscriptionSegment,
+    TranscriptionWord,
     AsyncTranscriptionResponse,
     AsyncTranscriptionResult,
     StreamingSegment,
@@ -38,6 +53,7 @@ from kafeido.types.models import (
     ModelList,
     ModelStatus,
     ModelStatusInfo,
+    ColdStartProgress,
     WarmupResponse,
 )
 from kafeido.types.files import (
@@ -46,6 +62,7 @@ from kafeido.types.files import (
     DeletedFile,
 )
 from kafeido.types.tts import (
+    TTSUsage,
     CreateSpeechAsyncResponse,
     SpeechResult,
     GetSpeechResultResponse,
@@ -62,6 +79,8 @@ from kafeido.types.vision import (
     VisionImageSource,
     VisionChatMessage,
     VisionUsage,
+    VisionChatChoice,
+    VisionChatDelta,
     CreateVisionResponse,
     CreateVisionChatResponse,
     CreateVisionAsyncResponse,
@@ -69,7 +88,7 @@ from kafeido.types.vision import (
 )
 from kafeido.types.jobs import (
     JobDetail,
-    ColdStartProgress,
+    JobProgress,
     RequestProgress,
 )
 from kafeido.types.health import (
@@ -77,6 +96,19 @@ from kafeido.types.health import (
 )
 
 __all__ = [
+    # Enums
+    "ModelId",
+    "ModelFamily",
+    "ModelFormat",
+    "ModelStatusEnum",
+    "JobStatus",
+    "ColdStartStage",
+    "RequestPhase",
+    "PlanTier",
+    "OCRMode",
+    "OCRResolution",
+    "TTSLanguage",
+    "VisionAnalysisMode",
     # Errors
     "OpenAIError",
     "APIError",
@@ -103,6 +135,7 @@ __all__ = [
     "Transcription",
     "Translation",
     "TranscriptionSegment",
+    "TranscriptionWord",
     "AsyncTranscriptionResponse",
     "AsyncTranscriptionResult",
     "StreamingSegment",
@@ -112,12 +145,14 @@ __all__ = [
     "ModelList",
     "ModelStatus",
     "ModelStatusInfo",
+    "ColdStartProgress",
     "WarmupResponse",
     # Files
     "FileObject",
     "FileList",
     "DeletedFile",
     # TTS
+    "TTSUsage",
     "CreateSpeechAsyncResponse",
     "SpeechResult",
     "GetSpeechResultResponse",
@@ -132,13 +167,15 @@ __all__ = [
     "VisionImageSource",
     "VisionChatMessage",
     "VisionUsage",
+    "VisionChatChoice",
+    "VisionChatDelta",
     "CreateVisionResponse",
     "CreateVisionChatResponse",
     "CreateVisionAsyncResponse",
     "GetVisionResultResponse",
     # Jobs
     "JobDetail",
-    "ColdStartProgress",
+    "JobProgress",
     "RequestProgress",
     # Health
     "HealthResponse",

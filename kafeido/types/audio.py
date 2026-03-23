@@ -8,16 +8,24 @@ from pydantic import BaseModel
 class TranscriptionSegment(BaseModel):
     """A segment of transcribed audio."""
 
-    id: int
-    seek: int
-    start: float
-    end: float
-    text: str
-    tokens: List[int]
-    temperature: float
-    avg_logprob: float
-    compression_ratio: float
-    no_speech_prob: float
+    id: Optional[int] = None
+    seek: Optional[int] = None
+    start: Optional[float] = None
+    end: Optional[float] = None
+    text: Optional[str] = None
+    tokens: Optional[List[int]] = None
+    temperature: Optional[float] = None
+    avg_logprob: Optional[float] = None
+    compression_ratio: Optional[float] = None
+    no_speech_prob: Optional[float] = None
+
+
+class TranscriptionWord(BaseModel):
+    """A word with timestamps from transcription."""
+
+    word: Optional[str] = None
+    start: Optional[float] = None
+    end: Optional[float] = None
 
 
 class Transcription(BaseModel):
@@ -28,7 +36,7 @@ class Transcription(BaseModel):
     language: Optional[str] = None
     duration: Optional[float] = None
     segments: Optional[List[TranscriptionSegment]] = None
-    words: Optional[List[Dict[str, Any]]] = None
+    words: Optional[List[TranscriptionWord]] = None
 
 
 class Translation(BaseModel):
@@ -46,16 +54,16 @@ class AsyncTranscriptionResponse(BaseModel):
 
     job_id: str
     status: str
-    estimated_completion_time: Optional[str] = None
+    estimated_completion_time: Optional[int] = None
 
 
 class AsyncTranscriptionResult(BaseModel):
     """Response from polling an async transcription job."""
 
     status: str
-    progress: Optional[float] = None
     result: Optional[Transcription] = None
     error: Optional[str] = None
+    progress: Optional[int] = None
 
 
 class StreamingSegment(BaseModel):

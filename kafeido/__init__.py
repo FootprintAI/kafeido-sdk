@@ -20,6 +20,19 @@ from kafeido.client import OpenAI
 from kafeido._async_client import AsyncOpenAI
 from kafeido._warmup import WarmupTimeoutError
 from kafeido.types import (
+    # Enums
+    ModelId,
+    ModelFamily,
+    ModelFormat,
+    ModelStatusEnum,
+    JobStatus,
+    ColdStartStage,
+    RequestPhase,
+    PlanTier,
+    OCRMode,
+    OCRResolution,
+    TTSLanguage,
+    VisionAnalysisMode,
     # Errors
     OpenAIError,
     APIError,
@@ -41,6 +54,7 @@ from kafeido.types import (
     # Audio
     Transcription,
     Translation,
+    TranscriptionWord,
     AsyncTranscriptionResponse,
     AsyncTranscriptionResult,
     StreamingSegment,
@@ -49,12 +63,15 @@ from kafeido.types import (
     Model,
     ModelList,
     ModelStatus,
+    ModelStatusInfo,
+    ColdStartProgress,
     WarmupResponse,
     # Files
     FileObject,
     FileList,
     DeletedFile,
     # TTS
+    TTSUsage,
     CreateSpeechAsyncResponse,
     SpeechResult,
     GetSpeechResultResponse,
@@ -69,13 +86,15 @@ from kafeido.types import (
     VisionImageSource,
     VisionChatMessage,
     VisionUsage,
+    VisionChatChoice,
+    VisionChatDelta,
     CreateVisionResponse,
     CreateVisionChatResponse,
     CreateVisionAsyncResponse,
     GetVisionResultResponse,
     # Jobs
     JobDetail,
-    ColdStartProgress,
+    JobProgress,
     RequestProgress,
     # Health
     HealthResponse,
@@ -85,6 +104,19 @@ __all__ = [
     "__version__",
     "OpenAI",
     "AsyncOpenAI",
+    # Enums
+    "ModelId",
+    "ModelFamily",
+    "ModelFormat",
+    "ModelStatusEnum",
+    "JobStatus",
+    "ColdStartStage",
+    "RequestPhase",
+    "PlanTier",
+    "OCRMode",
+    "OCRResolution",
+    "TTSLanguage",
+    "VisionAnalysisMode",
     # Errors
     "OpenAIError",
     "APIError",
@@ -107,6 +139,7 @@ __all__ = [
     # Audio
     "Transcription",
     "Translation",
+    "TranscriptionWord",
     "AsyncTranscriptionResponse",
     "AsyncTranscriptionResult",
     "StreamingSegment",
@@ -115,12 +148,15 @@ __all__ = [
     "Model",
     "ModelList",
     "ModelStatus",
+    "ModelStatusInfo",
+    "ColdStartProgress",
     "WarmupResponse",
     # Files
     "FileObject",
     "FileList",
     "DeletedFile",
     # TTS
+    "TTSUsage",
     "CreateSpeechAsyncResponse",
     "SpeechResult",
     "GetSpeechResultResponse",
@@ -135,13 +171,15 @@ __all__ = [
     "VisionImageSource",
     "VisionChatMessage",
     "VisionUsage",
+    "VisionChatChoice",
+    "VisionChatDelta",
     "CreateVisionResponse",
     "CreateVisionChatResponse",
     "CreateVisionAsyncResponse",
     "GetVisionResultResponse",
     # Jobs
     "JobDetail",
-    "ColdStartProgress",
+    "JobProgress",
     "RequestProgress",
     # Health
     "HealthResponse",

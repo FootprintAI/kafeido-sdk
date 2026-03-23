@@ -57,11 +57,15 @@ class Files:
         self,
         *,
         purpose: Optional[str] = None,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
     ) -> FileList:
         """List uploaded files.
 
         Args:
             purpose: Optional filter by purpose.
+            limit: Optional pagination limit (default: 100).
+            offset: Optional offset for pagination.
 
         Returns:
             FileList containing uploaded files.
@@ -69,12 +73,16 @@ class Files:
         Example:
             >>> client = OpenAI(api_key="sk-...")
             >>> files = client.files.list()
-            >>> for file in files.data:
-            ...     print(file.filename, file.created_at)
+            >>> for file in (files.files or []):
+            ...     print(file.filename)
         """
         params = {}
         if purpose:
             params["purpose"] = purpose
+        if limit is not None:
+            params["limit"] = str(limit)
+        if offset is not None:
+            params["offset"] = str(offset)
 
         response_data = self._client.get("/v1/audio/files", params=params)
         return FileList.model_validate(response_data)

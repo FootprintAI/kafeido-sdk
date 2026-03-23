@@ -18,11 +18,12 @@ class OCRRegion(BaseModel):
 
 
 class OCRUsage(BaseModel):
-    """Token usage for OCR requests."""
+    """OCR usage statistics."""
 
-    prompt_tokens: Optional[int] = None
-    completion_tokens: Optional[int] = None
+    vision_tokens: Optional[int] = None
+    output_tokens: Optional[int] = None
     total_tokens: Optional[int] = None
+    processing_time_ms: Optional[float] = None
 
 
 class CreateOCRResponse(BaseModel):
@@ -54,6 +55,6 @@ class GetOCRResultResponse(BaseModel):
     """Response from polling an async OCR job."""
 
     status: str
-    progress: Optional[float] = None
-    result: Optional[OCRResult] = None
+    progress: Optional[int] = None
+    result: Optional[CreateOCRResponse] = None
     error: Optional[str] = None

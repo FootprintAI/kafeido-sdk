@@ -33,7 +33,7 @@ class Jobs:
         """Get unified request progress (warmup + job processing).
 
         Args:
-            request_id: The request ID to check progress for.
+            request_id: The request/job ID to track.
             model_id: The model ID associated with the request.
 
         Returns:
@@ -41,9 +41,9 @@ class Jobs:
         """
         params = {}
         if request_id is not None:
-            params["request_id"] = request_id
+            params["requestId"] = request_id
         if model_id is not None:
-            params["model_id"] = model_id
+            params["modelId"] = model_id
 
         response_data = self._client.get("/v1/requests/progress", params=params)
         return RequestProgress.model_validate(response_data)

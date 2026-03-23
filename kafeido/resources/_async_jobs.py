@@ -26,9 +26,9 @@ class AsyncJobs:
         """Get unified request progress asynchronously."""
         params = {}
         if request_id is not None:
-            params["request_id"] = request_id
+            params["requestId"] = request_id
         if model_id is not None:
-            params["model_id"] = model_id
+            params["modelId"] = model_id
 
         response_data = await self._client.get("/v1/requests/progress", params=params)
         return RequestProgress.model_validate(response_data)
