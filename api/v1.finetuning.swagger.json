@@ -1,0 +1,463 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "fine_tuning.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "FineTuningService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/fine_tuning/jobs": {
+      "get": {
+        "summary": "ListFineTuningJobs lists fine-tuning jobs for the authenticated organization",
+        "operationId": "FineTuningService_ListFineTuningJobs",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFineTuningJobsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "Max results (default: 20, max: 100)",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "after",
+            "description": "Cursor for pagination (job ID)",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FineTuningService"
+        ]
+      },
+      "post": {
+        "summary": "CreateFineTuningJob submits a new fine-tuning job",
+        "operationId": "FineTuningService_CreateFineTuningJob",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FineTuningJob"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateFineTuningJobRequest"
+            }
+          }
+        ],
+        "tags": [
+          "FineTuningService"
+        ]
+      }
+    },
+    "/v1/fine_tuning/jobs/{fineTuningJobId}": {
+      "get": {
+        "summary": "GetFineTuningJob retrieves a fine-tuning job by ID",
+        "operationId": "FineTuningService_GetFineTuningJob",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FineTuningJob"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "fineTuningJobId",
+            "description": "Job ID to retrieve",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FineTuningService"
+        ]
+      }
+    },
+    "/v1/fine_tuning/jobs/{fineTuningJobId}/cancel": {
+      "post": {
+        "summary": "CancelFineTuningJob cancels a running fine-tuning job",
+        "operationId": "FineTuningService_CancelFineTuningJob",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FineTuningJob"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "fineTuningJobId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/FineTuningServiceCancelFineTuningJobBody"
+            }
+          }
+        ],
+        "tags": [
+          "FineTuningService"
+        ]
+      }
+    },
+    "/v1/fine_tuning/jobs/{fineTuningJobId}/events": {
+      "get": {
+        "summary": "ListFineTuningEvents returns training progress events for a job",
+        "operationId": "FineTuningService_ListFineTuningEvents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFineTuningEventsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "fineTuningJobId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "description": "Max results (default: 20, max: 100)",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "after",
+            "description": "Cursor for pagination",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "FineTuningService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "FineTuningServiceCancelFineTuningJobBody": {
+      "type": "object"
+    },
+    "commonQuantization": {
+      "type": "string",
+      "enum": [
+        "QUANTIZATION_UNSPECIFIED",
+        "QUANTIZATION_4BIT",
+        "QUANTIZATION_8BIT",
+        "QUANTIZATION_NONE"
+      ],
+      "default": "QUANTIZATION_UNSPECIFIED",
+      "description": "- QUANTIZATION_UNSPECIFIED: Default (same as 4BIT)\n - QUANTIZATION_4BIT: QLoRA — 4-bit quantization\n - QUANTIZATION_8BIT: 8-bit quantization\n - QUANTIZATION_NONE: Full precision",
+      "title": "Quantization mode for base model loading during fine-tuning"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1CreateFineTuningJobRequest": {
+      "type": "object",
+      "properties": {
+        "model": {
+          "type": "string",
+          "title": "Base model to fine-tune (e.g., \"gpt-oss-20b\")"
+        },
+        "trainingFile": {
+          "type": "string",
+          "title": "Storage key of uploaded JSONL training file"
+        },
+        "suffix": {
+          "type": "string",
+          "title": "Custom suffix for the fine-tuned model name"
+        },
+        "hyperparameters": {
+          "$ref": "#/definitions/v1FineTuningHyperparameters",
+          "title": "Override default hyperparameters"
+        }
+      }
+    },
+    "v1FineTuningEvent": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Event ID"
+        },
+        "object": {
+          "type": "string",
+          "title": "Always \"fine_tuning.event\""
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "level": {
+          "type": "string",
+          "title": "\"info\", \"warning\", \"error\""
+        },
+        "message": {
+          "type": "string",
+          "title": "Human-readable description"
+        },
+        "type": {
+          "type": "string",
+          "title": "\"message\" or \"metrics\""
+        },
+        "data": {
+          "$ref": "#/definitions/v1FineTuningMetrics",
+          "title": "Training metrics (when type=\"metrics\")"
+        }
+      },
+      "title": "FineTuningEvent represents a training progress event"
+    },
+    "v1FineTuningHyperparameters": {
+      "type": "object",
+      "properties": {
+        "nEpochs": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of training epochs (default: 3)"
+        },
+        "learningRate": {
+          "type": "number",
+          "format": "double",
+          "title": "Learning rate (default: 2e-4)"
+        },
+        "batchSize": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Training batch size (default: 4)"
+        },
+        "loraRank": {
+          "type": "integer",
+          "format": "int32",
+          "title": "LoRA rank (default: 16)"
+        },
+        "loraAlpha": {
+          "type": "integer",
+          "format": "int32",
+          "title": "LoRA alpha scaling factor (default: 32)"
+        },
+        "loraDropout": {
+          "type": "number",
+          "format": "double",
+          "title": "LoRA dropout rate (default: 0.05)"
+        },
+        "quantization": {
+          "$ref": "#/definitions/commonQuantization",
+          "title": "Quantization mode (default: 4BIT)"
+        }
+      },
+      "title": "FineTuningHyperparameters controls training configuration"
+    },
+    "v1FineTuningJob": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Job ID (e.g., \"ftjob-abc123\")"
+        },
+        "object": {
+          "type": "string",
+          "title": "Always \"fine_tuning.job\""
+        },
+        "model": {
+          "type": "string",
+          "title": "Base model name (e.g., \"gpt-oss-20b\")"
+        },
+        "fineTunedModel": {
+          "type": "string",
+          "title": "Output model name (e.g., \"gpt-oss-20b:ft-my-model-abc123\")"
+        },
+        "organizationId": {
+          "type": "string",
+          "title": "Organization that owns this job"
+        },
+        "status": {
+          "type": "string",
+          "title": "\"validating_files\", \"queued\", \"running\", \"succeeded\", \"failed\", \"cancelled\""
+        },
+        "trainingFile": {
+          "type": "string",
+          "title": "Storage key of training JSONL file"
+        },
+        "hyperparameters": {
+          "$ref": "#/definitions/v1FineTuningHyperparameters",
+          "title": "Training hyperparameters"
+        },
+        "trainedTokens": {
+          "type": "string",
+          "format": "int64",
+          "title": "Total tokens trained on"
+        },
+        "error": {
+          "type": "string",
+          "title": "Error message if failed"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "finishedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "suffix": {
+          "type": "string",
+          "title": "User-provided suffix for the model name"
+        }
+      },
+      "title": "FineTuningJob represents a fine-tuning job (OpenAI-compatible)"
+    },
+    "v1FineTuningMetrics": {
+      "type": "object",
+      "properties": {
+        "step": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "trainLoss": {
+          "type": "number",
+          "format": "double"
+        },
+        "trainMeanTokenAccuracy": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "title": "FineTuningMetrics contains per-step training metrics"
+    },
+    "v1ListFineTuningEventsResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1FineTuningEvent"
+          }
+        },
+        "hasMore": {
+          "type": "boolean"
+        },
+        "object": {
+          "type": "string",
+          "title": "Always \"list\""
+        }
+      }
+    },
+    "v1ListFineTuningJobsResponse": {
+      "type": "object",
+      "properties": {
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1FineTuningJob"
+          }
+        },
+        "hasMore": {
+          "type": "boolean"
+        },
+        "object": {
+          "type": "string",
+          "title": "Always \"list\""
+        }
+      }
+    }
+  }
+}

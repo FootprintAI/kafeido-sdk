@@ -1,0 +1,2942 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Kafeido API",
+    "description": "OpenAI-compatible API for AI model inference including LLM, ASR, OCR, and TTS.",
+    "version": "1.0"
+  },
+  "tags": [
+    {
+      "name": "Chat",
+      "description": "Chat completion endpoints for Large Language Models (GPT)"
+    },
+    {
+      "name": "ASR",
+      "description": "Automatic Speech Recognition endpoints for audio transcription and translation (Whisper)"
+    },
+    {
+      "name": "OCR",
+      "description": "Optical Character Recognition endpoints for text extraction from images"
+    },
+    {
+      "name": "TTS",
+      "description": "Text-to-Speech endpoints for audio generation from text"
+    },
+    {
+      "name": "Vision",
+      "description": "Vision-Language Model endpoints for image understanding and chat with images (Llama 3.2 Vision)"
+    },
+    {
+      "name": "Models",
+      "description": "Model management and status endpoints"
+    },
+    {
+      "name": "Jobs",
+      "description": "Async job status and progress tracking"
+    },
+    {
+      "name": "Health",
+      "description": "Service health check endpoints"
+    },
+    {
+      "name": "OpenAIService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/audio/files": {
+      "get": {
+        "summary": "List uploaded files",
+        "description": "List all uploaded audio files for the authenticated user.",
+        "operationId": "OpenAIService_ListUploadedFiles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListUploadedFilesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limit",
+            "description": "Optional pagination limit (default: 100)",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "offset",
+            "description": "Optional offset for pagination",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "ASR"
+        ]
+      }
+    },
+    "/v1/audio/files/{fileId}": {
+      "get": {
+        "summary": "Get uploaded file",
+        "description": "Get metadata for a specific uploaded audio file.",
+        "operationId": "OpenAIService_GetUploadedFile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UploadAudioFileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "fileId",
+            "description": "File ID to retrieve",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ASR"
+        ]
+      },
+      "delete": {
+        "summary": "Delete uploaded file",
+        "description": "Delete a previously uploaded audio file by file_id.",
+        "operationId": "OpenAIService_DeleteUploadedFile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DeleteUploadedFileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "fileId",
+            "description": "File ID to delete",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ASR"
+        ]
+      }
+    },
+    "/v1/audio/speech": {
+      "post": {
+        "summary": "Create speech (async)",
+        "description": "Submit TTS job for async processing. Returns immediately with job ID. Poll /v1/audio/speech/{job_id} for result.",
+        "operationId": "OpenAIService_CreateSpeech",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateSpeechAsyncResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateSpeechRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TTS"
+        ]
+      }
+    },
+    "/v1/audio/speech/{jobId}": {
+      "get": {
+        "summary": "Get speech result",
+        "description": "Poll for the result of an asynchronous TTS job.",
+        "operationId": "OpenAIService_GetSpeechResult",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetSpeechResultResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "jobId",
+            "description": "Job ID returned from CreateSpeech",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TTS"
+        ]
+      }
+    },
+    "/v1/audio/transcriptions": {
+      "post": {
+        "summary": "Transcribe audio",
+        "description": "Transcribe audio to text using Whisper ASR model.",
+        "operationId": "OpenAIService_CreateTranscription",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateTranscriptionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateTranscriptionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ASR"
+        ]
+      }
+    },
+    "/v1/audio/transcriptions/async": {
+      "post": {
+        "summary": "Create async transcription",
+        "description": "Submit audio for asynchronous transcription. Returns a job ID for polling.",
+        "operationId": "OpenAIService_CreateTranscriptionAsync",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateTranscriptionAsyncResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateTranscriptionAsyncRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ASR"
+        ]
+      }
+    },
+    "/v1/audio/transcriptions/async/{jobId}": {
+      "get": {
+        "summary": "Get transcription result",
+        "description": "Poll for the result of an asynchronous transcription job.",
+        "operationId": "OpenAIService_GetTranscriptionResult",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetTranscriptionResultResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "jobId",
+            "description": "Job ID returned from CreateTranscriptionAsync",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ASR"
+        ]
+      }
+    },
+    "/v1/audio/transcriptions/stream": {
+      "post": {
+        "summary": "Stream transcription (WebSocket)",
+        "description": "Real-time streaming transcription via WebSocket.\n\n## WebSocket Protocol\n\n**Endpoint:** `ws(s)://\u003chost\u003e/v1/audio/transcriptions/stream`\n\nThis endpoint upgrades to a WebSocket connection. Do NOT use as a regular HTTP POST.\n\n### Connection Flow\n\n1. Client opens a WebSocket connection\n2. Client sends a JSON **config message** (first message, text frame)\n3. Client sends **audio chunks** as binary frames (float32 PCM, 16kHz, mono)\n4. Server sends **transcription results** as JSON text frames\n5. Client closes the connection when done\n\n### 1. Config Message (client -\u003e server, JSON)\n\n```json\n{\n  \"model\": \"whisperlive-base\",\n  \"language\": \"en\",\n  \"task\": \"transcribe\",\n  \"use_vad\": true\n}\n```\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| model | string | Yes | Model name (e.g. `whisperlive-base`, `whisperlive-tiny`) |\n| language | string | No | ISO 639-1 code (e.g. `en`, `zh`). Auto-detected if omitted. |\n| task | string | No | `transcribe` (default) or `translate` (to English) |\n| use_vad | boolean | No | Enable Voice Activity Detection (default: true) |\n\n### 2. Audio Data (client -\u003e server, binary)\n\nSend raw PCM audio as binary WebSocket frames:\n- Format: **float32** (4 bytes per sample, little-endian)\n- Sample rate: **16000 Hz**\n- Channels: **1** (mono)\n- Recommended chunk size: 4096 samples (~256ms) for microphone, 16000 samples (~1s) for file streaming\n\n### 3. Transcription Response (server -\u003e client, JSON)\n\n```json\n{\n  \"segments\": [\n    {\n      \"start\": 0.0,\n      \"end\": 2.5,\n      \"text\": \"Hello world\",\n      \"completed\": true\n    }\n  ],\n  \"language\": \"en\",\n  \"language_prob\": 0.95\n}\n```\n\n| Field | Type | Description |\n|-------|------|-------------|\n| segments | array | Transcription segments from the current audio chunk |\n| segments[].start | float | Start time in seconds |\n| segments[].end | float | End time in seconds |\n| segments[].text | string | Transcribed text |\n| segments[].completed | boolean | `true` = finalized, `false` = partial/in-progress |\n| language | string | Detected language (ISO 639-1) |\n| language_prob | float | Language detection confidence (0.0-1.0) |\n\n**Note:** Each response contains segments from the latest audio chunk only (incremental). Clients must accumulate segments across messages to build the full transcript.\n\n### 4. Error Response (server -\u003e client, JSON)\n\n```json\n{\n  \"error\": \"description of the error\"\n}\n```\n\n### Example (JavaScript)\n\n```javascript\nconst ws = new WebSocket('wss://api.example.com/v1/audio/transcriptions/stream');\nws.binaryType = 'arraybuffer';\n\nws.onopen = () =\u003e {\n  ws.send(JSON.stringify({ model: 'whisperlive-base', language: 'en' }));\n  // Then send audio chunks as Float32Array binary frames\n};\n\nconst allSegments = [];\nws.onmessage = (event) =\u003e {\n  const data = JSON.parse(event.data);\n  if (data.segments) allSegments.push(...data.segments);\n};\n```",
+        "operationId": "OpenAIService_CreateTranscriptionStream",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v1CreateTranscriptionStreamResponse"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v1CreateTranscriptionStreamResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": " (streaming inputs)",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateTranscriptionStreamRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ASR"
+        ]
+      }
+    },
+    "/v1/audio/translations": {
+      "post": {
+        "summary": "Translate audio",
+        "description": "Translate audio to English using Whisper ASR model.",
+        "operationId": "OpenAIService_CreateTranslation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateTranslationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateTranslationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ASR"
+        ]
+      }
+    },
+    "/v1/audio/upload": {
+      "post": {
+        "summary": "Upload audio file",
+        "description": "Upload audio file for later transcription. Returns a file_id for use in transcription requests.",
+        "operationId": "OpenAIService_UploadAudioFile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UploadAudioFileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1UploadAudioFileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ASR"
+        ]
+      }
+    },
+    "/v1/chat/completions": {
+      "post": {
+        "summary": "Create chat completion",
+        "description": "Create a chat completion using a large language model. Supports both streaming and non-streaming responses.",
+        "operationId": "OpenAIService_CreateChatCompletion",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v1ChatCompletionResponseWrapper"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v1ChatCompletionResponseWrapper"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ChatCompletionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Chat"
+        ]
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "summary": "Health check",
+        "description": "Check the health status of the service.",
+        "operationId": "OpenAIService_Health",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1HealthResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/v1/jobs/{jobId}": {
+      "get": {
+        "summary": "Get job",
+        "description": "Get job status and result by job ID.",
+        "operationId": "OpenAIService_GetJob",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetJobResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "jobId",
+            "description": "Job ID (UUID)",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Jobs"
+        ]
+      }
+    },
+    "/v1/models": {
+      "get": {
+        "summary": "List models",
+        "description": "List all available models.",
+        "operationId": "OpenAIService_ListModels",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListModelsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Models"
+        ]
+      }
+    },
+    "/v1/models/warmup": {
+      "post": {
+        "summary": "Warmup model",
+        "description": "Prefetch/warmup a model to trigger cold start in background.",
+        "operationId": "OpenAIService_WarmupModel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1WarmupModelResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1WarmupModelRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Models"
+        ]
+      }
+    },
+    "/v1/models/{modelId}/status": {
+      "get": {
+        "summary": "Get model status",
+        "description": "Get real-time model status including cold start progress.",
+        "operationId": "OpenAIService_GetModelStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetModelStatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "modelId",
+            "description": "Model ID (e.g., \"whisper-large-v3\", \"gpt-oss-20b\")",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Models"
+        ]
+      }
+    },
+    "/v1/models/{model}": {
+      "get": {
+        "summary": "Retrieve model",
+        "description": "Get detailed information about a specific model.",
+        "operationId": "OpenAIService_RetrieveModel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1Model"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "model",
+            "description": "Model ID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Models"
+        ]
+      }
+    },
+    "/v1/ocr/extract": {
+      "post": {
+        "summary": "Extract text from image",
+        "description": "Extract text from images using OCR. Images should be uploaded first via storage service.",
+        "operationId": "OpenAIService_CreateOCR",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateOCRResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateOCRRequest"
+            }
+          }
+        ],
+        "tags": [
+          "OCR"
+        ]
+      }
+    },
+    "/v1/ocr/extract/async": {
+      "post": {
+        "summary": "Create async OCR",
+        "description": "Submit OCR job for async processing. Returns immediately with job ID.",
+        "operationId": "OpenAIService_CreateOCRAsync",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateOCRAsyncResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateOCRAsyncRequest"
+            }
+          }
+        ],
+        "tags": [
+          "OCR"
+        ]
+      }
+    },
+    "/v1/ocr/extract/async/{jobId}": {
+      "get": {
+        "summary": "Get OCR result",
+        "description": "Poll for the result of an asynchronous OCR job.",
+        "operationId": "OpenAIService_GetOCRResult",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetOCRResultResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "jobId",
+            "description": "Job ID returned from CreateOCRAsync",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "OCR"
+        ]
+      }
+    },
+    "/v1/requests/progress": {
+      "get": {
+        "summary": "Get request progress",
+        "description": "Get unified request progress combining warmup and job progress.",
+        "operationId": "OpenAIService_GetRequestProgress",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetRequestProgressResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "requestId",
+            "description": "Request/job ID to track",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "modelId",
+            "description": "Model ID enum (type-safe)\n\n - MODEL_ID_WHISPER_LARGE_V3: Whisper models (STT)\n - MODEL_ID_GPT_OSS_20B: GPT models (LLM)\n - MODEL_ID_OCR_DEEPSEEK: OCR models\n - MODEL_ID_OCR_PADDLE_VL: PaddleOCR-VL-1.5: Vision-language OCR model\nSupports: OCR, Table Recognition, Formula Recognition, Chart Recognition\n - MODEL_ID_HIGGS_AUDIO_V2: TTS models (Audio Generation) — DEPRECATED\n - MODEL_ID_XTTS_V2: XTTS-v2 (Coqui TTS) - Voice cloning with 6-second audio\nLicense: Coqui Public Model License (non-commercial only)\n - MODEL_ID_QWEN3_TTS: Qwen3-TTS - Multilingual TTS with voice cloning (3-second audio)\nLicense: Apache 2.0 (commercial use OK)\n - MODEL_ID_QWEN3_TTS_FAST: Qwen3-TTS-Fast - Optimized backend for faster inference\nLicense: Apache 2.0 (commercial use OK)\n - MODEL_ID_LLAMA_3_2_VISION_11B: Vision-Language models (VisionLLM)\n - MODEL_ID_GLM_4_7_FLASH: GLM models (General Language Model with thinking mode and tool calling)\n - MODEL_ID_WHISPERLIVE_TINY: WhisperLive models (Real-time streaming ASR)\n - MODEL_ID_BREEZE_ASR_25: Breeze-ASR-25: Model fine-tuned for Mandarin Chinese, English, and code-switching\n - MODEL_ID_LLAMA_3_2_1B_GGUF: Llama GGUF models (optimized inference)\n - MODEL_ID_WHISPER_LARGE_V3_GGML: Whisper GGML models (optimized inference)\n - MODEL_ID_QWEN_2_5_3B_GGUF: Qwen GGUF models (optimized inference)\n - MODEL_ID_QWEN_3_5_4B_GGUF: Qwen3.5 model family\n - MODEL_ID_FISH_SPEECH_S2: Fish Speech S2 — Multilingual TTS (auto-detect language incl. Indonesian)\nLicense: Apache 2.0\n - MODEL_ID_CHATTERBOX_MULTILINGUAL: Chatterbox Multilingual — Multilingual TTS with Indonesian/Malay support\nLicense: MIT",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "MODEL_ID_UNSPECIFIED",
+              "MODEL_ID_WHISPER_LARGE_V3",
+              "MODEL_ID_WHISPER_TURBO",
+              "MODEL_ID_GPT_OSS_20B",
+              "MODEL_ID_GPT_OSS_120B",
+              "MODEL_ID_OCR_DEEPSEEK",
+              "MODEL_ID_OCR_PADDLE",
+              "MODEL_ID_OCR_PADDLE_VL",
+              "MODEL_ID_HIGGS_AUDIO_V2",
+              "MODEL_ID_XTTS_V2",
+              "MODEL_ID_QWEN3_TTS",
+              "MODEL_ID_QWEN3_TTS_FAST",
+              "MODEL_ID_LLAMA_3_2_VISION_11B",
+              "MODEL_ID_LLAMA_3_2_VISION_90B",
+              "MODEL_ID_GLM_4_7_FLASH",
+              "MODEL_ID_WHISPERLIVE_TINY",
+              "MODEL_ID_WHISPERLIVE_BASE",
+              "MODEL_ID_WHISPERLIVE_SMALL",
+              "MODEL_ID_WHISPERLIVE_MEDIUM",
+              "MODEL_ID_WHISPERLIVE_LARGE_V3",
+              "MODEL_ID_WHISPERLIVE_TURBO",
+              "MODEL_ID_BREEZE_ASR_25",
+              "MODEL_ID_LLAMA_3_2_1B_GGUF",
+              "MODEL_ID_LLAMA_3_2_3B_GGUF",
+              "MODEL_ID_WHISPER_LARGE_V3_GGML",
+              "MODEL_ID_WHISPER_SMALL_GGML",
+              "MODEL_ID_WHISPER_LARGE_V3_TURBO_GGML",
+              "MODEL_ID_QWEN_2_5_3B_GGUF",
+              "MODEL_ID_GEMMA_3_1B_GGUF",
+              "MODEL_ID_QWEN_3_5_4B_GGUF",
+              "MODEL_ID_QWEN_3_5_9B",
+              "MODEL_ID_QWEN_3_5_35B_A3B",
+              "MODEL_ID_QWEN_3_5_122B_A10B",
+              "MODEL_ID_QWEN_3_5_397B_A17B",
+              "MODEL_ID_FISH_SPEECH_S2",
+              "MODEL_ID_CHATTERBOX_MULTILINGUAL"
+            ],
+            "default": "MODEL_ID_UNSPECIFIED"
+          }
+        ],
+        "tags": [
+          "Jobs"
+        ]
+      }
+    },
+    "/v1/vision/analyze": {
+      "post": {
+        "summary": "Analyze image",
+        "description": "Analyze an image using vision-language model (Llama 3.2 Vision). Supports document extraction, chart analysis, and general image understanding.",
+        "operationId": "OpenAIService_CreateVision",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateVisionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateVisionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Vision"
+        ]
+      }
+    },
+    "/v1/vision/analyze/async": {
+      "post": {
+        "summary": "Create async vision analysis",
+        "description": "Submit vision analysis job for async processing. Returns immediately with job ID.",
+        "operationId": "OpenAIService_CreateVisionAsync",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateVisionAsyncResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateVisionAsyncRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Vision"
+        ]
+      }
+    },
+    "/v1/vision/analyze/async/{jobId}": {
+      "get": {
+        "summary": "Get vision result",
+        "description": "Poll for the result of an asynchronous vision job.",
+        "operationId": "OpenAIService_GetVisionResult",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetVisionResultResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "jobId",
+            "description": "Job ID returned from CreateVisionAsync",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Vision"
+        ]
+      }
+    },
+    "/v1/vision/chat": {
+      "post": {
+        "summary": "Chat with images",
+        "description": "Multi-turn conversation with image understanding. Supports streaming responses.",
+        "operationId": "OpenAIService_CreateVisionChat",
+        "responses": {
+          "200": {
+            "description": "A successful response.(streaming responses)",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "$ref": "#/definitions/v1CreateVisionChatResponse"
+                },
+                "error": {
+                  "$ref": "#/definitions/rpcStatus"
+                }
+              },
+              "title": "Stream result of v1CreateVisionChatResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateVisionChatRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Vision"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "commonJobStatus": {
+      "type": "string",
+      "enum": [
+        "JOB_STATUS_UNSPECIFIED",
+        "JOB_STATUS_PENDING",
+        "JOB_STATUS_PROCESSING",
+        "JOB_STATUS_COMPLETED",
+        "JOB_STATUS_FAILED"
+      ],
+      "default": "JOB_STATUS_UNSPECIFIED",
+      "title": "JobStatus - Status of an async job\nShared across all model families (OCR, GPT, Whisper, etc.)\nUses job_status_name option for database string representation"
+    },
+    "commonModelFamily": {
+      "type": "string",
+      "enum": [
+        "MODEL_FAMILY_UNSPECIFIED",
+        "MODEL_FAMILY_GPT",
+        "MODEL_FAMILY_ASR",
+        "MODEL_FAMILY_OCR",
+        "MODEL_FAMILY_TTS",
+        "MODEL_FAMILY_VISIONLLM",
+        "MODEL_FAMILY_GLM",
+        "MODEL_FAMILY_WHISPER_LIVE"
+      ],
+      "default": "MODEL_FAMILY_UNSPECIFIED",
+      "description": "- MODEL_FAMILY_GPT: GPT/LLM models (text-only)\n - MODEL_FAMILY_ASR: ASR/STT models (Whisper, etc.)\n - MODEL_FAMILY_OCR: OCR models\n - MODEL_FAMILY_TTS: TTS/Audio generation models\n - MODEL_FAMILY_VISIONLLM: Vision-Language models (Llama 3.2 Vision, etc.)\n - MODEL_FAMILY_GLM: GLM models with thinking mode and tool calling\n - MODEL_FAMILY_WHISPER_LIVE: Real-time streaming ASR (WhisperLive)",
+      "title": "ModelFamily represents the family/category of a model"
+    },
+    "commonModelFormat": {
+      "type": "string",
+      "enum": [
+        "MODEL_FORMAT_UNSPECIFIED",
+        "MODEL_FORMAT_TEXT",
+        "MODEL_FORMAT_AUDIO",
+        "MODEL_FORMAT_IMAGE",
+        "MODEL_FORMAT_VIDEO"
+      ],
+      "default": "MODEL_FORMAT_UNSPECIFIED",
+      "title": "ModelFormat represents the input/output data type of a model"
+    },
+    "commonModelId": {
+      "type": "string",
+      "enum": [
+        "MODEL_ID_UNSPECIFIED",
+        "MODEL_ID_WHISPER_LARGE_V3",
+        "MODEL_ID_WHISPER_TURBO",
+        "MODEL_ID_GPT_OSS_20B",
+        "MODEL_ID_GPT_OSS_120B",
+        "MODEL_ID_OCR_DEEPSEEK",
+        "MODEL_ID_OCR_PADDLE",
+        "MODEL_ID_OCR_PADDLE_VL",
+        "MODEL_ID_HIGGS_AUDIO_V2",
+        "MODEL_ID_XTTS_V2",
+        "MODEL_ID_QWEN3_TTS",
+        "MODEL_ID_QWEN3_TTS_FAST",
+        "MODEL_ID_LLAMA_3_2_VISION_11B",
+        "MODEL_ID_LLAMA_3_2_VISION_90B",
+        "MODEL_ID_GLM_4_7_FLASH",
+        "MODEL_ID_WHISPERLIVE_TINY",
+        "MODEL_ID_WHISPERLIVE_BASE",
+        "MODEL_ID_WHISPERLIVE_SMALL",
+        "MODEL_ID_WHISPERLIVE_MEDIUM",
+        "MODEL_ID_WHISPERLIVE_LARGE_V3",
+        "MODEL_ID_WHISPERLIVE_TURBO",
+        "MODEL_ID_BREEZE_ASR_25",
+        "MODEL_ID_LLAMA_3_2_1B_GGUF",
+        "MODEL_ID_LLAMA_3_2_3B_GGUF",
+        "MODEL_ID_WHISPER_LARGE_V3_GGML",
+        "MODEL_ID_WHISPER_SMALL_GGML",
+        "MODEL_ID_WHISPER_LARGE_V3_TURBO_GGML",
+        "MODEL_ID_QWEN_2_5_3B_GGUF",
+        "MODEL_ID_GEMMA_3_1B_GGUF",
+        "MODEL_ID_QWEN_3_5_4B_GGUF",
+        "MODEL_ID_QWEN_3_5_9B",
+        "MODEL_ID_QWEN_3_5_35B_A3B",
+        "MODEL_ID_QWEN_3_5_122B_A10B",
+        "MODEL_ID_QWEN_3_5_397B_A17B",
+        "MODEL_ID_FISH_SPEECH_S2",
+        "MODEL_ID_CHATTERBOX_MULTILINGUAL"
+      ],
+      "default": "MODEL_ID_UNSPECIFIED",
+      "description": "- MODEL_ID_WHISPER_LARGE_V3: Whisper models (STT)\n - MODEL_ID_GPT_OSS_20B: GPT models (LLM)\n - MODEL_ID_OCR_DEEPSEEK: OCR models\n - MODEL_ID_OCR_PADDLE_VL: PaddleOCR-VL-1.5: Vision-language OCR model\nSupports: OCR, Table Recognition, Formula Recognition, Chart Recognition\n - MODEL_ID_HIGGS_AUDIO_V2: TTS models (Audio Generation) — DEPRECATED\n - MODEL_ID_XTTS_V2: XTTS-v2 (Coqui TTS) - Voice cloning with 6-second audio\nLicense: Coqui Public Model License (non-commercial only)\n - MODEL_ID_QWEN3_TTS: Qwen3-TTS - Multilingual TTS with voice cloning (3-second audio)\nLicense: Apache 2.0 (commercial use OK)\n - MODEL_ID_QWEN3_TTS_FAST: Qwen3-TTS-Fast - Optimized backend for faster inference\nLicense: Apache 2.0 (commercial use OK)\n - MODEL_ID_LLAMA_3_2_VISION_11B: Vision-Language models (VisionLLM)\n - MODEL_ID_GLM_4_7_FLASH: GLM models (General Language Model with thinking mode and tool calling)\n - MODEL_ID_WHISPERLIVE_TINY: WhisperLive models (Real-time streaming ASR)\n - MODEL_ID_BREEZE_ASR_25: Breeze-ASR-25: Model fine-tuned for Mandarin Chinese, English, and code-switching\n - MODEL_ID_LLAMA_3_2_1B_GGUF: Llama GGUF models (optimized inference)\n - MODEL_ID_WHISPER_LARGE_V3_GGML: Whisper GGML models (optimized inference)\n - MODEL_ID_QWEN_2_5_3B_GGUF: Qwen GGUF models (optimized inference)\n - MODEL_ID_QWEN_3_5_4B_GGUF: Qwen3.5 model family\n - MODEL_ID_FISH_SPEECH_S2: Fish Speech S2 — Multilingual TTS (auto-detect language incl. Indonesian)\nLicense: Apache 2.0\n - MODEL_ID_CHATTERBOX_MULTILINGUAL: Chatterbox Multilingual — Multilingual TTS with Indonesian/Malay support\nLicense: MIT",
+      "title": "ModelId - Supported model identifiers"
+    },
+    "commonModelStatus": {
+      "type": "string",
+      "enum": [
+        "MODEL_STATUS_UNSPECIFIED",
+        "MODEL_STATUS_COLD",
+        "MODEL_STATUS_STARTING",
+        "MODEL_STATUS_HEALTHY",
+        "MODEL_STATUS_UNHEALTHY",
+        "MODEL_STATUS_STOPPED"
+      ],
+      "default": "MODEL_STATUS_UNSPECIFIED",
+      "description": "- MODEL_STATUS_COLD: Model not loaded\n - MODEL_STATUS_STARTING: Model is loading\n - MODEL_STATUS_HEALTHY: Model is ready\n - MODEL_STATUS_UNHEALTHY: Model loaded but unhealthy\n - MODEL_STATUS_STOPPED: Model stopped/shutting down",
+      "title": "ModelStatus represents the status of a loaded model\nThis is the unified status used both internally and in API responses"
+    },
+    "commonOCRMode": {
+      "type": "string",
+      "enum": [
+        "OCR_MODE_UNSPECIFIED",
+        "OCR_MODE_MARKDOWN",
+        "OCR_MODE_GENERIC",
+        "OCR_MODE_FIGURE",
+        "OCR_MODE_GROUNDING"
+      ],
+      "default": "OCR_MODE_UNSPECIFIED",
+      "description": "- OCR_MODE_MARKDOWN: Convert document to markdown with layout\n - OCR_MODE_GENERIC: Plain text extraction without structure\n - OCR_MODE_FIGURE: Parse figures, charts, and tables\n - OCR_MODE_GROUNDING: Extract text with bounding box coordinates",
+      "title": "OCRMode defines the type of OCR task to perform"
+    },
+    "commonOCRResolution": {
+      "type": "string",
+      "enum": [
+        "OCR_RESOLUTION_UNSPECIFIED",
+        "OCR_RESOLUTION_AUTO",
+        "OCR_RESOLUTION_TINY",
+        "OCR_RESOLUTION_SMALL",
+        "OCR_RESOLUTION_BASE",
+        "OCR_RESOLUTION_LARGE"
+      ],
+      "default": "OCR_RESOLUTION_UNSPECIFIED",
+      "description": "- OCR_RESOLUTION_AUTO: Auto-select resolution\n - OCR_RESOLUTION_TINY: 512x512, 64 vision tokens\n - OCR_RESOLUTION_SMALL: 640x640, 100 vision tokens\n - OCR_RESOLUTION_BASE: 1024x1024, 256 vision tokens\n - OCR_RESOLUTION_LARGE: 1280x1280, 400 vision tokens",
+      "title": "OCRResolution defines the image processing resolution\nHigher resolution = better quality but slower processing"
+    },
+    "commonTTSLanguage": {
+      "type": "string",
+      "enum": [
+        "TTS_LANGUAGE_UNSPECIFIED",
+        "TTS_LANGUAGE_EN",
+        "TTS_LANGUAGE_ZH",
+        "TTS_LANGUAGE_JA",
+        "TTS_LANGUAGE_KO",
+        "TTS_LANGUAGE_DE",
+        "TTS_LANGUAGE_FR",
+        "TTS_LANGUAGE_RU",
+        "TTS_LANGUAGE_PT",
+        "TTS_LANGUAGE_ES",
+        "TTS_LANGUAGE_IT",
+        "TTS_LANGUAGE_ID",
+        "TTS_LANGUAGE_MS"
+      ],
+      "default": "TTS_LANGUAGE_UNSPECIFIED",
+      "description": "- TTS_LANGUAGE_EN: English\n - TTS_LANGUAGE_ZH: Chinese (中文)\n - TTS_LANGUAGE_JA: Japanese (日本語)\n - TTS_LANGUAGE_KO: Korean (한국어)\n - TTS_LANGUAGE_DE: German (Deutsch)\n - TTS_LANGUAGE_FR: French (Français)\n - TTS_LANGUAGE_RU: Russian (Русский)\n - TTS_LANGUAGE_PT: Portuguese (Português)\n - TTS_LANGUAGE_ES: Spanish (Español)\n - TTS_LANGUAGE_IT: Italian (Italiano)\n - TTS_LANGUAGE_ID: Indonesian (Bahasa Indonesia)\n - TTS_LANGUAGE_MS: Malay (Bahasa Melayu)",
+      "title": "TTS language selection\nLanguage codes follow ISO 639-1"
+    },
+    "commonVisionAnalysisMode": {
+      "type": "string",
+      "enum": [
+        "VISION_ANALYSIS_MODE_UNSPECIFIED",
+        "VISION_ANALYSIS_MODE_GENERAL",
+        "VISION_ANALYSIS_MODE_DOCUMENT",
+        "VISION_ANALYSIS_MODE_CHART",
+        "VISION_ANALYSIS_MODE_CODE",
+        "VISION_ANALYSIS_MODE_DETAILED"
+      ],
+      "default": "VISION_ANALYSIS_MODE_UNSPECIFIED",
+      "description": "- VISION_ANALYSIS_MODE_UNSPECIFIED: Unspecified, defaults to GENERAL\n - VISION_ANALYSIS_MODE_GENERAL: General image understanding\n - VISION_ANALYSIS_MODE_DOCUMENT: Document/text extraction\n - VISION_ANALYSIS_MODE_CHART: Chart/graph analysis\n - VISION_ANALYSIS_MODE_CODE: Code screenshot analysis\n - VISION_ANALYSIS_MODE_DETAILED: Detailed image description",
+      "title": "VisionAnalysisMode represents the analysis preset for Vision LLM requests\nThis is the unified enum used by both API and internal IPC layers\nString extensions enable human-readable database storage and API responses"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1ChatCompletionRequest": {
+      "type": "object",
+      "properties": {
+        "model": {
+          "type": "string",
+          "title": "ID of the model to use"
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ChatMessage"
+          },
+          "title": "List of messages in the conversation"
+        },
+        "temperature": {
+          "type": "number",
+          "format": "float",
+          "title": "Temperature sampling (0-2)"
+        },
+        "topP": {
+          "type": "number",
+          "format": "float",
+          "title": "Top-p sampling"
+        },
+        "maxTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Maximum tokens to generate"
+        },
+        "stream": {
+          "type": "boolean",
+          "title": "Whether to stream the response"
+        },
+        "stop": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Stop sequences"
+        },
+        "n": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of completions to generate"
+        },
+        "presencePenalty": {
+          "type": "number",
+          "format": "float",
+          "title": "Presence penalty"
+        },
+        "frequencyPenalty": {
+          "type": "number",
+          "format": "float",
+          "title": "Frequency penalty"
+        },
+        "user": {
+          "type": "string",
+          "title": "User identifier"
+        }
+      },
+      "title": "Chat completion request (OpenAI compatible)"
+    },
+    "v1ChatCompletionResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Unique identifier"
+        },
+        "object": {
+          "type": "string",
+          "title": "Object type (always \"chat.completion\")"
+        },
+        "created": {
+          "type": "string",
+          "format": "int64",
+          "title": "Unix timestamp of creation"
+        },
+        "model": {
+          "type": "string",
+          "title": "Model used"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Choice"
+          },
+          "title": "List of completion choices"
+        },
+        "usage": {
+          "$ref": "#/definitions/v1Usage",
+          "title": "Token usage statistics"
+        }
+      },
+      "title": "Chat completion response"
+    },
+    "v1ChatCompletionResponseWrapper": {
+      "type": "object",
+      "properties": {
+        "completion": {
+          "$ref": "#/definitions/v1ChatCompletionResponse",
+          "title": "Non-streaming response (when stream=false)"
+        },
+        "chunk": {
+          "$ref": "#/definitions/v1ChatCompletionStreamResponse",
+          "title": "Streaming chunk (when stream=true)"
+        }
+      },
+      "title": "Wrapper for both streaming and non-streaming responses"
+    },
+    "v1ChatCompletionStreamResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Unique identifier"
+        },
+        "object": {
+          "type": "string",
+          "title": "Object type (always \"chat.completion.chunk\")"
+        },
+        "created": {
+          "type": "string",
+          "format": "int64",
+          "title": "Unix timestamp of creation"
+        },
+        "model": {
+          "type": "string",
+          "title": "Model used"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1StreamChoice"
+          },
+          "title": "List of delta choices"
+        }
+      },
+      "title": "Streaming response chunk"
+    },
+    "v1ChatMessage": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "title": "Role: system, user, assistant, or function"
+        },
+        "content": {
+          "type": "string",
+          "title": "Message content"
+        },
+        "name": {
+          "type": "string",
+          "title": "Optional message name"
+        }
+      },
+      "title": "Chat message"
+    },
+    "v1ChatMessageDelta": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "title": "Role (only present in first chunk)"
+        },
+        "content": {
+          "type": "string",
+          "title": "Incremental content"
+        }
+      },
+      "title": "Incremental message delta"
+    },
+    "v1Choice": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Choice index"
+        },
+        "message": {
+          "$ref": "#/definitions/v1ChatMessage",
+          "title": "Generated message"
+        },
+        "finishReason": {
+          "type": "string",
+          "title": "Finish reason: stop, length, content_filter, null"
+        }
+      },
+      "title": "Chat completion choice"
+    },
+    "v1ColdStartProgress": {
+      "type": "object",
+      "properties": {
+        "stage": {
+          "$ref": "#/definitions/v1ColdStartStage",
+          "title": "Current stage of the cold start process"
+        },
+        "progress": {
+          "type": "number",
+          "format": "float",
+          "title": "Progress within current stage (0.0-1.0)"
+        },
+        "estimatedSeconds": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Estimated seconds remaining until ready"
+        },
+        "message": {
+          "type": "string",
+          "title": "Human-readable status message"
+        }
+      },
+      "title": "Cold start progress details for tracking model loading"
+    },
+    "v1ColdStartStage": {
+      "type": "string",
+      "enum": [
+        "COLD_START_STAGE_UNSPECIFIED",
+        "COLD_START_STAGE_QUEUED",
+        "COLD_START_STAGE_SPAWNING",
+        "COLD_START_STAGE_LOADING",
+        "COLD_START_STAGE_WARMING",
+        "COLD_START_STAGE_READY"
+      ],
+      "default": "COLD_START_STAGE_UNSPECIFIED",
+      "description": "- COLD_START_STAGE_QUEUED: Request queued, waiting for resources\n - COLD_START_STAGE_SPAWNING: Model process starting\n - COLD_START_STAGE_LOADING: Model loading into memory\n - COLD_START_STAGE_WARMING: Running warmup inference\n - COLD_START_STAGE_READY: Ready to serve",
+      "title": "Cold start progress stage enum with type-safe stage names"
+    },
+    "v1CreateOCRAsyncRequest": {
+      "type": "object",
+      "properties": {
+        "fileId": {
+          "type": "string",
+          "title": "File ID from previous upload via /v1/images/upload"
+        },
+        "storageKey": {
+          "type": "string",
+          "title": "Storage key for pre-uploaded image (from storage service)"
+        },
+        "modelId": {
+          "$ref": "#/definitions/commonModelId",
+          "title": "Model ID enum (type-safe)"
+        },
+        "mode": {
+          "$ref": "#/definitions/commonOCRMode",
+          "title": "OCR processing mode"
+        },
+        "resolution": {
+          "$ref": "#/definitions/commonOCRResolution",
+          "title": "Image resolution setting"
+        },
+        "language": {
+          "type": "string",
+          "title": "Language hint for better accuracy (ISO-639-1, e.g., \"en\", \"zh\")"
+        },
+        "customPrompt": {
+          "type": "string",
+          "title": "Custom prompt (overrides mode-based prompt if set)"
+        },
+        "maxTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Maximum tokens to generate"
+        }
+      },
+      "title": "Async OCR request - same fields as CreateOCRRequest"
+    },
+    "v1CreateOCRAsyncResponse": {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string",
+          "title": "Job ID for tracking the async request"
+        },
+        "status": {
+          "$ref": "#/definitions/commonJobStatus",
+          "title": "Initial status (always PENDING)"
+        }
+      },
+      "title": "Async OCR response - returns immediately with job ID"
+    },
+    "v1CreateOCRRequest": {
+      "type": "object",
+      "properties": {
+        "fileId": {
+          "type": "string",
+          "title": "File ID from previous upload via /v1/images/upload"
+        },
+        "storageKey": {
+          "type": "string",
+          "title": "Storage key for pre-uploaded image (from storage service)"
+        },
+        "modelId": {
+          "$ref": "#/definitions/commonModelId",
+          "title": "Model ID enum (type-safe)\nHTTP handler converts short string (e.g., \"deepseek-ocr\") to enum"
+        },
+        "mode": {
+          "$ref": "#/definitions/commonOCRMode",
+          "title": "OCR processing mode"
+        },
+        "resolution": {
+          "$ref": "#/definitions/commonOCRResolution",
+          "title": "Image resolution setting"
+        },
+        "language": {
+          "type": "string",
+          "title": "Language hint for better accuracy (ISO-639-1, e.g., \"en\", \"zh\")"
+        },
+        "customPrompt": {
+          "type": "string",
+          "title": "Custom prompt (overrides mode-based prompt if set)"
+        },
+        "maxTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Maximum tokens to generate"
+        }
+      },
+      "title": "OCR request"
+    },
+    "v1CreateOCRResponse": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "title": "Extracted text (markdown or plain text based on mode)"
+        },
+        "regions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1OCRRegion"
+          },
+          "title": "Bounding boxes (only populated in GROUNDING mode)"
+        },
+        "usage": {
+          "$ref": "#/definitions/v1OCRUsage",
+          "title": "Usage statistics"
+        },
+        "detectedLanguage": {
+          "type": "string",
+          "title": "Detected language"
+        }
+      },
+      "title": "OCR response"
+    },
+    "v1CreateSpeechAsyncResponse": {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string",
+          "title": "Job ID for tracking the async request"
+        },
+        "status": {
+          "$ref": "#/definitions/commonJobStatus",
+          "title": "Initial status (always PENDING)"
+        }
+      },
+      "title": "Async TTS response - returns immediately with job ID"
+    },
+    "v1CreateSpeechRequest": {
+      "type": "object",
+      "properties": {
+        "model": {
+          "type": "string",
+          "title": "Model ID (e.g., \"qwen3-tts\", \"xtts-v2\", \"tts-1\", \"tts-1-hd\")"
+        },
+        "input": {
+          "type": "string",
+          "title": "Text to synthesize into speech (max 4096 characters)"
+        },
+        "voice": {
+          "type": "string",
+          "title": "Voice preset to use\nCan be string (\"default\", \"alloy\", \"echo\", etc.) or enum\nIf reference_audio_id is provided, this is ignored and voice cloning is used"
+        },
+        "responseFormat": {
+          "type": "string",
+          "title": "Audio output format\nCan be string (\"wav\", \"mp3\", \"opus\", etc.) or enum"
+        },
+        "speed": {
+          "type": "number",
+          "format": "float",
+          "title": "Speech speed (0.25 to 4.0, default 1.0)"
+        },
+        "referenceAudioId": {
+          "type": "string",
+          "title": "File ID from previous upload via /v1/audio/upload"
+        },
+        "referenceAudioKey": {
+          "type": "string",
+          "title": "Storage key for pre-uploaded audio (from storage service)"
+        },
+        "systemPrompt": {
+          "type": "string",
+          "title": "Scene description for audio environment\nFormat: \"\u003c|scene_desc_start|\u003edescription\u003c|scene_desc_end|\u003e\""
+        },
+        "temperature": {
+          "type": "number",
+          "format": "float",
+          "description": "Sampling temperature (default: 0.3)",
+          "title": "Generation parameters"
+        },
+        "topP": {
+          "type": "number",
+          "format": "float",
+          "title": "Nucleus sampling threshold (default: 0.95)"
+        },
+        "topK": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Top-k sampling (default: 50)"
+        },
+        "maxTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Maximum tokens to generate (default: 1024)"
+        },
+        "language": {
+          "$ref": "#/definitions/commonTTSLanguage",
+          "title": "Language for speech synthesis\nDefault: TTS_LANGUAGE_EN (English) if not specified"
+        }
+      },
+      "title": "Create speech request (OpenAI compatible)"
+    },
+    "v1CreateSpeechResponse": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string",
+          "title": "Presigned download URL for the generated audio\nURL expires after expires_at timestamp"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "URL expiration timestamp (Unix timestamp)"
+        },
+        "durationSeconds": {
+          "type": "number",
+          "format": "float",
+          "title": "Audio duration in seconds"
+        },
+        "contentType": {
+          "type": "string",
+          "title": "Content type of the audio (e.g., \"audio/wav\", \"audio/mpeg\")"
+        },
+        "fileSize": {
+          "type": "string",
+          "format": "int64",
+          "title": "Audio file size in bytes"
+        },
+        "sampleRate": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Audio sample rate in Hz (e.g., 24000, 44100)"
+        },
+        "usage": {
+          "$ref": "#/definitions/v1TTSUsage",
+          "title": "Usage statistics"
+        }
+      },
+      "title": "Create speech response\nAudio is uploaded to cloud storage and a presigned download URL is returned"
+    },
+    "v1CreateTranscriptionAsyncRequest": {
+      "type": "object",
+      "properties": {
+        "storageKey": {
+          "type": "string",
+          "title": "Storage key from PrepareUploadResponse (full GCS path, e.g., \"org_xxx/uuid-filename.mp3\")"
+        },
+        "model": {
+          "type": "string",
+          "title": "Model ID (e.g., \"whisper-large-v3\")"
+        },
+        "language": {
+          "type": "string",
+          "title": "Language of the input audio (ISO-639-1 format)"
+        },
+        "prompt": {
+          "type": "string",
+          "title": "Prompt to guide the model's style"
+        },
+        "responseFormat": {
+          "type": "string",
+          "title": "Response format: json, text, srt, verbose_json, or vtt"
+        },
+        "temperature": {
+          "type": "number",
+          "format": "float",
+          "title": "Temperature for sampling (0-1)"
+        },
+        "timestampGranularities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Timestamp granularities: segment, word"
+        }
+      },
+      "title": "Async transcription request (non-standard extension)\nRequires prior file upload via /v1/storage/prepare + confirm"
+    },
+    "v1CreateTranscriptionAsyncResponse": {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string",
+          "title": "Job ID for polling"
+        },
+        "status": {
+          "type": "string",
+          "title": "Job status: pending, processing, completed, failed"
+        },
+        "estimatedCompletionTime": {
+          "type": "string",
+          "format": "int64",
+          "title": "Estimated completion time (Unix timestamp)"
+        }
+      },
+      "title": "Async transcription response"
+    },
+    "v1CreateTranscriptionRequest": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string",
+          "format": "byte",
+          "title": "Audio file bytes (multipart/form-data: file) - for direct upload"
+        },
+        "fileId": {
+          "type": "string",
+          "title": "File ID from previous upload - for large files uploaded separately"
+        },
+        "model": {
+          "type": "string",
+          "title": "Model ID (e.g., \"whisper-1\")"
+        },
+        "language": {
+          "type": "string",
+          "title": "Language of the input audio (ISO-639-1 format)"
+        },
+        "prompt": {
+          "type": "string",
+          "title": "Prompt to guide the model's style"
+        },
+        "responseFormat": {
+          "type": "string",
+          "title": "Response format: json, text, srt, verbose_json, or vtt"
+        },
+        "temperature": {
+          "type": "number",
+          "format": "float",
+          "title": "Temperature for sampling (0-1)"
+        },
+        "timestampGranularities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Timestamp granularities: segment, word"
+        }
+      },
+      "title": "Audio transcription request (OpenAI compatible)"
+    },
+    "v1CreateTranscriptionResponse": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "title": "Transcribed text"
+        },
+        "task": {
+          "type": "string",
+          "title": "Task type (always \"transcribe\")"
+        },
+        "language": {
+          "type": "string",
+          "title": "Language detected"
+        },
+        "duration": {
+          "type": "number",
+          "format": "float",
+          "title": "Duration of audio in seconds"
+        },
+        "segments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TranscriptionSegment"
+          },
+          "title": "Segments with timestamps (if requested)"
+        },
+        "words": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TranscriptionWord"
+          },
+          "title": "Words with timestamps (if requested)"
+        }
+      },
+      "title": "Audio transcription response"
+    },
+    "v1CreateTranscriptionStreamRequest": {
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string",
+          "title": "Session ID for the streaming session"
+        },
+        "audioChunk": {
+          "type": "string",
+          "format": "byte",
+          "title": "Audio chunk bytes (PCM 16-bit, 16kHz mono)"
+        },
+        "bufferDurationSec": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Buffer duration in seconds for VAD"
+        },
+        "model": {
+          "type": "string",
+          "title": "Model ID (only in first message)"
+        },
+        "language": {
+          "type": "string",
+          "title": "Language hint (only in first message)"
+        },
+        "isFinal": {
+          "type": "boolean",
+          "title": "End of stream flag"
+        }
+      },
+      "title": "Streaming transcription request (non-standard extension)"
+    },
+    "v1CreateTranscriptionStreamResponse": {
+      "type": "object",
+      "properties": {
+        "sequence": {
+          "type": "string",
+          "format": "int64",
+          "title": "Sequence number for ordering"
+        },
+        "text": {
+          "type": "string",
+          "title": "Transcribed text (partial or final)"
+        },
+        "isFinal": {
+          "type": "boolean",
+          "title": "Whether this is a final result"
+        },
+        "segments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TranscriptionSegment"
+          },
+          "title": "Segments with timestamps (for final results)"
+        },
+        "sessionId": {
+          "type": "string",
+          "title": "Session ID"
+        }
+      },
+      "title": "Streaming transcription response"
+    },
+    "v1CreateTranslationRequest": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string",
+          "format": "byte",
+          "title": "Audio file bytes (multipart/form-data: file)"
+        },
+        "model": {
+          "type": "string",
+          "title": "Model ID (e.g., \"whisper-1\")"
+        },
+        "prompt": {
+          "type": "string",
+          "title": "Prompt to guide the model's style"
+        },
+        "responseFormat": {
+          "type": "string",
+          "title": "Response format: json, text, srt, verbose_json, or vtt"
+        },
+        "temperature": {
+          "type": "number",
+          "format": "float",
+          "title": "Temperature for sampling (0-1)"
+        }
+      },
+      "title": "Audio translation request (OpenAI compatible)"
+    },
+    "v1CreateTranslationResponse": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "title": "Translated text (in English)"
+        },
+        "task": {
+          "type": "string",
+          "title": "Task type (always \"translate\")"
+        },
+        "language": {
+          "type": "string",
+          "title": "Source language detected"
+        },
+        "duration": {
+          "type": "number",
+          "format": "float",
+          "title": "Duration of audio in seconds"
+        },
+        "segments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TranscriptionSegment"
+          },
+          "title": "Segments with timestamps (if requested)"
+        }
+      },
+      "title": "Audio translation response"
+    },
+    "v1CreateVisionAsyncRequest": {
+      "type": "object",
+      "properties": {
+        "storageKey": {
+          "type": "string"
+        },
+        "imageBase64": {
+          "type": "string"
+        },
+        "imageUrl": {
+          "type": "string"
+        },
+        "modelId": {
+          "$ref": "#/definitions/commonModelId",
+          "title": "Model ID enum"
+        },
+        "prompt": {
+          "type": "string",
+          "title": "Analysis prompt"
+        },
+        "mode": {
+          "$ref": "#/definitions/commonVisionAnalysisMode",
+          "title": "Analysis mode preset"
+        },
+        "temperature": {
+          "type": "number",
+          "format": "float",
+          "title": "Generation parameters"
+        },
+        "maxTokens": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "topP": {
+          "type": "number",
+          "format": "float"
+        },
+        "topK": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "repetitionPenalty": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "title": "Async vision request - same fields as CreateVisionRequest"
+    },
+    "v1CreateVisionAsyncResponse": {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string",
+          "title": "Job ID for tracking"
+        },
+        "status": {
+          "$ref": "#/definitions/commonJobStatus",
+          "title": "Initial status (always PENDING)"
+        }
+      },
+      "title": "Async vision response"
+    },
+    "v1CreateVisionChatRequest": {
+      "type": "object",
+      "properties": {
+        "messages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1VisionChatMessage"
+          },
+          "title": "Conversation history including images"
+        },
+        "modelId": {
+          "$ref": "#/definitions/commonModelId",
+          "title": "Model ID enum (type-safe)"
+        },
+        "stream": {
+          "type": "boolean",
+          "title": "Whether to stream the response"
+        },
+        "conversationId": {
+          "type": "string",
+          "title": "Conversation ID for tracking (optional)"
+        },
+        "temperature": {
+          "type": "number",
+          "format": "float",
+          "title": "Generation parameters (optional)"
+        },
+        "maxTokens": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "topP": {
+          "type": "number",
+          "format": "float"
+        },
+        "topK": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "repetitionPenalty": {
+          "type": "number",
+          "format": "float"
+        },
+        "stop": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Create vision chat request (multi-turn with streaming)"
+    },
+    "v1CreateVisionChatResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Unique identifier"
+        },
+        "object": {
+          "type": "string",
+          "title": "Object type (\"vision.chat.completion\" or \"vision.chat.completion.chunk\")"
+        },
+        "created": {
+          "type": "string",
+          "format": "int64",
+          "title": "Unix timestamp of creation"
+        },
+        "model": {
+          "type": "string",
+          "title": "Model used"
+        },
+        "choice": {
+          "$ref": "#/definitions/v1VisionChatChoice",
+          "title": "For non-streaming: full response"
+        },
+        "delta": {
+          "$ref": "#/definitions/v1VisionChatDelta",
+          "title": "For streaming: incremental content"
+        },
+        "finishReason": {
+          "type": "string",
+          "title": "Finish reason (only in final message)"
+        },
+        "usage": {
+          "$ref": "#/definitions/v1VisionUsage",
+          "title": "Usage statistics (only in final message)"
+        },
+        "error": {
+          "type": "string",
+          "title": "Error message if failed"
+        }
+      },
+      "title": "Vision chat response (streaming)"
+    },
+    "v1CreateVisionRequest": {
+      "type": "object",
+      "properties": {
+        "storageKey": {
+          "type": "string",
+          "title": "Storage key for pre-uploaded image (from storage service)"
+        },
+        "imageBase64": {
+          "type": "string",
+          "title": "Inline base64-encoded image data (for small images)"
+        },
+        "imageUrl": {
+          "type": "string",
+          "title": "URL to fetch image from (data URLs supported)"
+        },
+        "modelId": {
+          "$ref": "#/definitions/commonModelId",
+          "title": "Model ID enum (type-safe)\nHTTP handler converts short string (e.g., \"llama-3.2-vision-11b\") to enum"
+        },
+        "prompt": {
+          "type": "string",
+          "title": "Analysis prompt (describes what to extract/analyze)"
+        },
+        "mode": {
+          "$ref": "#/definitions/commonVisionAnalysisMode",
+          "title": "Analysis mode preset (optional - uses GENERAL if not specified)"
+        },
+        "temperature": {
+          "type": "number",
+          "format": "float",
+          "description": "Sampling temperature (default: 0.7)",
+          "title": "Generation parameters (optional)"
+        },
+        "maxTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Maximum tokens to generate (default: 2048)"
+        },
+        "topP": {
+          "type": "number",
+          "format": "float",
+          "title": "Top-p sampling (default: 0.9)"
+        },
+        "topK": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Top-k sampling (default: 50)"
+        },
+        "repetitionPenalty": {
+          "type": "number",
+          "format": "float",
+          "title": "Repetition penalty (default: 1.0)"
+        }
+      },
+      "title": "Create vision request (single-turn image analysis)"
+    },
+    "v1CreateVisionResponse": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "title": "Generated analysis text"
+        },
+        "usage": {
+          "$ref": "#/definitions/v1VisionUsage",
+          "title": "Usage statistics"
+        },
+        "error": {
+          "type": "string",
+          "title": "Error message if processing failed"
+        }
+      },
+      "title": "Create vision response"
+    },
+    "v1DeleteUploadedFileResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "title": "Success indicator"
+        },
+        "message": {
+          "type": "string",
+          "title": "Optional message"
+        }
+      },
+      "title": "Delete uploaded file response"
+    },
+    "v1GetJobResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Job ID"
+        },
+        "type": {
+          "type": "string",
+          "title": "Job type: gpt, stt, image_gen, ocr, tts"
+        },
+        "status": {
+          "type": "string",
+          "title": "Status: pending, processing, completed, failed"
+        },
+        "priority": {
+          "type": "string",
+          "title": "Priority: low, medium, high"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Created timestamp (Unix)"
+        },
+        "startedAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Started timestamp (Unix, optional)"
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Completed timestamp (Unix, optional)"
+        },
+        "result": {
+          "type": "string",
+          "title": "Result payload (JSON string, only if completed)"
+        },
+        "error": {
+          "type": "string",
+          "title": "Error message (only if failed)"
+        },
+        "retryCount": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Retry count"
+        },
+        "queueTimeMs": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Queue time in milliseconds (optional)"
+        },
+        "processingTimeMs": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Processing time in milliseconds (optional)"
+        }
+      },
+      "title": "Get job status response"
+    },
+    "v1GetModelStatusResponse": {
+      "type": "object",
+      "properties": {
+        "modelId": {
+          "type": "string",
+          "title": "Model ID"
+        },
+        "status": {
+          "$ref": "#/definitions/v1ModelStatusInfo",
+          "title": "Current model status including cold start progress"
+        }
+      },
+      "title": "Get model status response"
+    },
+    "v1GetOCRResultResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/commonJobStatus",
+          "title": "Job status"
+        },
+        "progress": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Progress percentage (0-100)"
+        },
+        "error": {
+          "type": "string",
+          "title": "Error message if status is FAILED"
+        },
+        "result": {
+          "$ref": "#/definitions/v1CreateOCRResponse",
+          "title": "OCR result (only present when status is COMPLETED)"
+        }
+      },
+      "title": "Get OCR result response"
+    },
+    "v1GetRequestProgressResponse": {
+      "type": "object",
+      "properties": {
+        "progress": {
+          "$ref": "#/definitions/v1RequestProgress",
+          "title": "Current request progress"
+        }
+      },
+      "title": "Get request progress response"
+    },
+    "v1GetSpeechResultResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/commonJobStatus",
+          "title": "Job status"
+        },
+        "progress": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Progress percentage (0-100)"
+        },
+        "error": {
+          "type": "string",
+          "title": "Error message if status is FAILED"
+        },
+        "result": {
+          "$ref": "#/definitions/v1CreateSpeechResponse",
+          "title": "TTS result (only present when status is COMPLETED)"
+        }
+      },
+      "title": "Get TTS result response"
+    },
+    "v1GetTranscriptionResultResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/commonJobStatus",
+          "title": "Job status (shared enum across all async job types)"
+        },
+        "result": {
+          "$ref": "#/definitions/v1CreateTranscriptionResponse",
+          "title": "Transcription result (only present when status=COMPLETED)"
+        },
+        "error": {
+          "type": "string",
+          "title": "Error message (only present when status=FAILED)"
+        },
+        "progress": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Progress percentage (0-100)"
+        }
+      },
+      "title": "Get async transcription result response"
+    },
+    "v1GetVisionResultResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/commonJobStatus",
+          "title": "Job status"
+        },
+        "progress": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Progress percentage (0-100)"
+        },
+        "error": {
+          "type": "string",
+          "title": "Error message if status is FAILED"
+        },
+        "result": {
+          "$ref": "#/definitions/v1CreateVisionResponse",
+          "title": "Vision result (only present when status is COMPLETED)"
+        }
+      },
+      "title": "Get vision result response"
+    },
+    "v1HealthResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "title": "Overall status: healthy, unhealthy"
+        },
+        "version": {
+          "type": "string",
+          "title": "Semantic version (e.g., \"1.3.0\")"
+        },
+        "buildTime": {
+          "type": "string",
+          "title": "Build timestamp (e.g., \"2025-01-15T10:30:00Z\")"
+        },
+        "commit": {
+          "type": "string",
+          "title": "Git commit hash (e.g., \"abc1234-dirty\")"
+        }
+      },
+      "title": "Health check response"
+    },
+    "v1JobProgress": {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string",
+          "title": "Job ID"
+        },
+        "progress": {
+          "type": "number",
+          "format": "float",
+          "title": "Progress within job (0.0-1.0)"
+        },
+        "status": {
+          "type": "string",
+          "title": "Job status: pending, processing, completed, failed"
+        },
+        "queuePosition": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Position in queue (if queued)"
+        }
+      },
+      "title": "Job progress details (for processing phase)"
+    },
+    "v1ListModelsResponse": {
+      "type": "object",
+      "properties": {
+        "object": {
+          "type": "string",
+          "title": "Object type (always \"list\")"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Model"
+          },
+          "title": "List of models"
+        }
+      },
+      "title": "List models response"
+    },
+    "v1ListUploadedFilesResponse": {
+      "type": "object",
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1UploadAudioFileResponse"
+          },
+          "title": "List of uploaded files"
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Total number of files"
+        },
+        "totalSize": {
+          "type": "string",
+          "format": "int64",
+          "title": "Total storage used in bytes"
+        }
+      },
+      "title": "List uploaded files response"
+    },
+    "v1Model": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "Model ID"
+        },
+        "object": {
+          "type": "string",
+          "title": "Object type (always \"model\")"
+        },
+        "created": {
+          "type": "string",
+          "format": "int64",
+          "title": "Unix timestamp of creation"
+        },
+        "licence": {
+          "type": "string",
+          "title": "License information (e.g., \"MIT\", \"Apache 2.0\", \"GPL-3.0\")"
+        },
+        "inputFormat": {
+          "$ref": "#/definitions/commonModelFormat",
+          "title": "Input format"
+        },
+        "outputFormat": {
+          "$ref": "#/definitions/commonModelFormat",
+          "title": "Output format"
+        },
+        "family": {
+          "$ref": "#/definitions/commonModelFamily",
+          "title": "Model family (from common/model.proto)"
+        },
+        "modelStatus": {
+          "$ref": "#/definitions/v1ModelStatusInfo",
+          "title": "Runtime status (optional - only present if registry is available)"
+        },
+        "available": {
+          "type": "boolean",
+          "title": "Whether the model is available for use by the client\nA model may be listed but not available if:\n- The backend doesn't have the model weights/binary\n- The model is disabled by configuration\n- The model requires specific hardware not present"
+        },
+        "minPlanTier": {
+          "$ref": "#/definitions/v1PlanTier",
+          "title": "Minimum subscription tier required to use this model\nPLAN_TIER_UNSPECIFIED (0) means no restriction (available to all tiers)"
+        }
+      },
+      "title": "Model information"
+    },
+    "v1ModelStatusInfo": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/commonModelStatus",
+          "title": "Status of the model (uses common.ModelStatus enum)"
+        },
+        "warm": {
+          "type": "boolean",
+          "title": "Whether the model is warm (loaded in memory)"
+        },
+        "usagePercentage": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Usage percentage (0-100) - how busy the model instances are\nThis can be used to show a progress bar or load indicator"
+        },
+        "coldStartProgress": {
+          "$ref": "#/definitions/v1ColdStartProgress",
+          "title": "Cold start progress details (only present when status=STARTING)"
+        },
+        "avgTokensPerSecond": {
+          "type": "number",
+          "format": "float",
+          "title": "Average tokens per second (performance metric for GPT models)\nThis is a rolling average from recent requests"
+        }
+      },
+      "title": "Runtime status of a model (wrapper with additional metadata)"
+    },
+    "v1OCRRegion": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "title": "Extracted text in this region"
+        },
+        "x1": {
+          "type": "number",
+          "format": "float",
+          "description": "Left",
+          "title": "Normalized coordinates (0.0 to 1.0)"
+        },
+        "y1": {
+          "type": "number",
+          "format": "float",
+          "title": "Top"
+        },
+        "x2": {
+          "type": "number",
+          "format": "float",
+          "title": "Right"
+        },
+        "y2": {
+          "type": "number",
+          "format": "float",
+          "title": "Bottom"
+        },
+        "confidence": {
+          "type": "number",
+          "format": "float",
+          "title": "Confidence score (0.0 to 1.0)"
+        },
+        "regionType": {
+          "type": "string",
+          "title": "Region type (text, table, figure, etc.)"
+        }
+      },
+      "title": "OCR bounding box region"
+    },
+    "v1OCRUsage": {
+      "type": "object",
+      "properties": {
+        "visionTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of vision tokens processed"
+        },
+        "outputTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of text tokens generated"
+        },
+        "totalTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Total tokens (vision + output)"
+        },
+        "processingTimeMs": {
+          "type": "number",
+          "format": "float",
+          "title": "Processing time in milliseconds"
+        }
+      },
+      "title": "OCR usage statistics"
+    },
+    "v1PlanTier": {
+      "type": "string",
+      "enum": [
+        "PLAN_TIER_UNSPECIFIED",
+        "PLAN_TIER_FREE",
+        "PLAN_TIER_STARTER",
+        "PLAN_TIER_PRO",
+        "PLAN_TIER_ENTERPRISE"
+      ],
+      "default": "PLAN_TIER_UNSPECIFIED"
+    },
+    "v1RequestPhase": {
+      "type": "string",
+      "enum": [
+        "REQUEST_PHASE_UNSPECIFIED",
+        "REQUEST_PHASE_WARMUP",
+        "REQUEST_PHASE_UPLOADING",
+        "REQUEST_PHASE_PROCESSING",
+        "REQUEST_PHASE_COMPLETE"
+      ],
+      "default": "REQUEST_PHASE_UNSPECIFIED",
+      "description": "- REQUEST_PHASE_WARMUP: Model cold start in progress\n - REQUEST_PHASE_UPLOADING: File upload in progress\n - REQUEST_PHASE_PROCESSING: Request being processed\n - REQUEST_PHASE_COMPLETE: Done",
+      "title": "Request phase enum with type-safe phase names"
+    },
+    "v1RequestProgress": {
+      "type": "object",
+      "properties": {
+        "phase": {
+          "$ref": "#/definitions/v1RequestPhase",
+          "title": "Current phase of the request"
+        },
+        "warmup": {
+          "$ref": "#/definitions/v1ColdStartProgress",
+          "title": "Warmup progress (populated during WARMUP phase)"
+        },
+        "processing": {
+          "$ref": "#/definitions/v1JobProgress",
+          "title": "Job progress (populated during PROCESSING phase)"
+        },
+        "overallProgress": {
+          "type": "number",
+          "format": "float",
+          "title": "Overall progress (0.0-1.0)"
+        },
+        "estimatedSeconds": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Estimated seconds remaining"
+        },
+        "message": {
+          "type": "string",
+          "title": "Human-readable status message"
+        }
+      },
+      "title": "Unified request progress (combines warmup + job progress)"
+    },
+    "v1StreamChoice": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Choice index"
+        },
+        "delta": {
+          "$ref": "#/definitions/v1ChatMessageDelta",
+          "title": "Delta message (incremental)"
+        },
+        "finishReason": {
+          "type": "string",
+          "title": "Finish reason: stop, length, content_filter, null"
+        }
+      },
+      "title": "Streaming choice delta"
+    },
+    "v1TTSUsage": {
+      "type": "object",
+      "properties": {
+        "characterCount": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of characters in input text"
+        },
+        "audioDurationSeconds": {
+          "type": "number",
+          "format": "float",
+          "title": "Duration of generated audio in seconds"
+        },
+        "processingTimeMs": {
+          "type": "number",
+          "format": "float",
+          "title": "Processing time in milliseconds"
+        },
+        "realTimeFactor": {
+          "type": "number",
+          "format": "float",
+          "title": "Real-time factor (processing_time / audio_duration)\n\u003c 1.0 means faster than real-time"
+        }
+      },
+      "title": "TTS usage statistics"
+    },
+    "v1TranscriptionSegment": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Segment ID"
+        },
+        "seek": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Seek position"
+        },
+        "start": {
+          "type": "number",
+          "format": "float",
+          "title": "Start time in seconds"
+        },
+        "end": {
+          "type": "number",
+          "format": "float",
+          "title": "End time in seconds"
+        },
+        "text": {
+          "type": "string",
+          "title": "Segment text"
+        },
+        "tokens": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": "Token IDs"
+        },
+        "temperature": {
+          "type": "number",
+          "format": "float",
+          "title": "Temperature used"
+        },
+        "avgLogprob": {
+          "type": "number",
+          "format": "float",
+          "title": "Average log probability"
+        },
+        "compressionRatio": {
+          "type": "number",
+          "format": "float",
+          "title": "Compression ratio"
+        },
+        "noSpeechProb": {
+          "type": "number",
+          "format": "float",
+          "title": "No speech probability"
+        }
+      },
+      "title": "Transcription segment with timestamps"
+    },
+    "v1TranscriptionWord": {
+      "type": "object",
+      "properties": {
+        "word": {
+          "type": "string",
+          "title": "Word text"
+        },
+        "start": {
+          "type": "number",
+          "format": "float",
+          "title": "Start time in seconds"
+        },
+        "end": {
+          "type": "number",
+          "format": "float",
+          "title": "End time in seconds"
+        }
+      },
+      "title": "Transcription word with timestamps"
+    },
+    "v1UploadAudioFileRequest": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string",
+          "format": "byte",
+          "title": "Audio file bytes (multipart/form-data: file)"
+        },
+        "filename": {
+          "type": "string",
+          "title": "Optional filename for reference"
+        }
+      },
+      "title": "Upload audio file request"
+    },
+    "v1UploadAudioFileResponse": {
+      "type": "object",
+      "properties": {
+        "fileId": {
+          "type": "string",
+          "title": "Unique file identifier for later use"
+        },
+        "fileSize": {
+          "type": "string",
+          "format": "int64",
+          "title": "File size in bytes"
+        },
+        "uploadedAt": {
+          "type": "string",
+          "format": "int64",
+          "title": "Upload timestamp (Unix timestamp)"
+        },
+        "expiresIn": {
+          "type": "string",
+          "format": "int64",
+          "title": "File expiration time in seconds (e.g., 86400 for 24 hours)"
+        },
+        "filename": {
+          "type": "string",
+          "title": "Optional filename"
+        }
+      },
+      "title": "Upload audio file response"
+    },
+    "v1Usage": {
+      "type": "object",
+      "properties": {
+        "promptTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Tokens in the prompt"
+        },
+        "completionTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Tokens in the completion"
+        },
+        "totalTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Total tokens used"
+        }
+      },
+      "title": "Token usage statistics"
+    },
+    "v1VisionChatChoice": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Choice index"
+        },
+        "message": {
+          "$ref": "#/definitions/v1VisionChatMessage",
+          "title": "Generated message"
+        },
+        "finishReason": {
+          "type": "string",
+          "title": "Finish reason"
+        }
+      },
+      "title": "Vision chat choice (non-streaming)"
+    },
+    "v1VisionChatDelta": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "title": "Role (only in first chunk)"
+        },
+        "content": {
+          "type": "string",
+          "title": "Incremental content"
+        }
+      },
+      "title": "Vision chat delta (streaming)"
+    },
+    "v1VisionChatMessage": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "title": "Role: \"system\", \"user\", or \"assistant\""
+        },
+        "content": {
+          "type": "string",
+          "title": "Text content"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1VisionImageInput"
+          },
+          "title": "Images attached to this message (for user messages only)\nCan include multiple images in a single message"
+        }
+      },
+      "title": "Vision chat message (for multi-turn conversation)"
+    },
+    "v1VisionImageInput": {
+      "type": "object",
+      "properties": {
+        "storageKey": {
+          "type": "string",
+          "title": "Storage key for pre-uploaded image"
+        },
+        "imageBase64": {
+          "type": "string",
+          "title": "Inline base64-encoded image data"
+        },
+        "imageUrl": {
+          "type": "string",
+          "title": "URL to fetch image from"
+        }
+      },
+      "title": "Vision image input for chat messages"
+    },
+    "v1VisionUsage": {
+      "type": "object",
+      "properties": {
+        "promptTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of prompt tokens (text)"
+        },
+        "visionTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of vision tokens (image patches)"
+        },
+        "completionTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number of completion tokens"
+        },
+        "totalTokens": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Total tokens"
+        },
+        "processingTimeMs": {
+          "type": "number",
+          "format": "float",
+          "title": "Processing time in milliseconds"
+        },
+        "tokensPerSecond": {
+          "type": "number",
+          "format": "float",
+          "title": "Tokens per second throughput"
+        },
+        "imageWidth": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Input image dimensions"
+        },
+        "imageHeight": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "Vision usage statistics"
+    },
+    "v1WarmupModelRequest": {
+      "type": "object",
+      "properties": {
+        "modelId": {
+          "$ref": "#/definitions/commonModelId",
+          "title": "Model ID enum (type-safe)"
+        }
+      },
+      "title": "Warmup model request - uses type-safe ModelId"
+    },
+    "v1WarmupModelResponse": {
+      "type": "object",
+      "properties": {
+        "alreadyWarm": {
+          "type": "boolean",
+          "title": "True if model was already warm (no warmup needed)"
+        },
+        "estimatedSeconds": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Estimated seconds until model is ready"
+        }
+      },
+      "title": "Warmup model response"
+    }
+  }
+}
