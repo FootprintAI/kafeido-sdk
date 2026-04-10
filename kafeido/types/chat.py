@@ -35,9 +35,13 @@ class ChatCompletionChoice(BaseModel):
 class ChatCompletionUsage(BaseModel):
     """Token usage statistics."""
 
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
+    # Server returns camelCase via gRPC-gateway (promptTokens, completionTokens, totalTokens).
+    # populate_by_name=True lets us accept both snake_case and camelCase inputs.
+    model_config = {"populate_by_name": True}
+
+    prompt_tokens: int = Field(..., alias="promptTokens")
+    completion_tokens: int = Field(..., alias="completionTokens")
+    total_tokens: int = Field(..., alias="totalTokens")
 
 
 class ChatCompletion(BaseModel):

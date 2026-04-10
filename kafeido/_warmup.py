@@ -17,7 +17,9 @@ if TYPE_CHECKING:
 # Default configuration
 DEFAULT_POLL_INTERVAL = 2.0  # seconds between status checks
 DEFAULT_MAX_WAIT_TIME = 300.0  # 5 minutes max wait
-HEALTHY_STATUS = "healthy"
+# Server returns proto enum names verbatim (see types.enums.ModelStatusEnum.HEALTHY).
+# Accept both the enum name and the lowercase short form for forward compatibility.
+HEALTHY_STATUSES = ("MODEL_STATUS_HEALTHY", "healthy", "HEALTHY")
 
 
 class WarmupTimeoutError(Exception):
@@ -101,7 +103,7 @@ class WarmupHelper:
             # Check status
             status = self._status_fn(model)
 
-            if status.status and status.status.status == HEALTHY_STATUS:
+            if status.status and status.status.status in HEALTHY_STATUSES:
                 return  # Model is ready
 
             # Wait before next poll
@@ -174,7 +176,7 @@ class AsyncWarmupHelper:
             # Check status
             status = await self._status_fn(model)
 
-            if status.status and status.status.status == HEALTHY_STATUS:
+            if status.status and status.status.status in HEALTHY_STATUSES:
                 return  # Model is ready
 
             # Wait before next poll

@@ -51,17 +51,25 @@ class FineTuningJob(BaseModel):
 class FineTuningMetrics(BaseModel):
     """Per-step training metrics."""
 
+    model_config = {"populate_by_name": True}
+
     step: Optional[int] = None
-    train_loss: Optional[float] = None
-    train_mean_token_accuracy: Optional[float] = None
+    train_loss: Optional[float] = Field(None, alias="trainLoss")
+    train_mean_token_accuracy: Optional[float] = Field(None, alias="trainMeanTokenAccuracy")
+    total_steps: Optional[int] = Field(None, alias="totalSteps")
+    elapsed_seconds: Optional[float] = Field(None, alias="elapsedSeconds")
+    eta_seconds: Optional[float] = Field(None, alias="etaSeconds")
+    steps_per_second: Optional[float] = Field(None, alias="stepsPerSecond")
 
 
 class FineTuningEvent(BaseModel):
     """A training progress event."""
 
+    model_config = {"populate_by_name": True}
+
     id: Optional[str] = None
     object: Optional[str] = "fine_tuning.event"
-    created_at: Optional[str] = None
+    created_at: Optional[str] = Field(None, alias="createdAt")
     level: Optional[str] = None
     message: Optional[str] = None
     type: Optional[str] = None
@@ -79,6 +87,8 @@ class FineTuningJobList(BaseModel):
 class FineTuningEventList(BaseModel):
     """List of fine-tuning events."""
 
+    model_config = {"populate_by_name": True}
+
     data: Optional[List[FineTuningEvent]] = None
-    has_more: Optional[bool] = None
+    has_more: Optional[bool] = Field(None, alias="hasMore")
     object: Optional[str] = "list"

@@ -4,7 +4,7 @@ import os
 import re
 from typing import Optional
 
-from kafeido.types.errors import AuthenticationError
+from kafeido.types.errors import APIError, AuthenticationError
 
 
 def get_api_key(api_key: Optional[str] = None) -> str:
@@ -33,12 +33,11 @@ def get_api_key(api_key: Optional[str] = None) -> str:
     key = os.getenv("KAFEIDO_API_KEY") or os.getenv("OPENAI_API_KEY")
 
     if not key:
-        raise AuthenticationError(
+        raise APIError(
             message=(
                 "No API key provided. Set KAFEIDO_API_KEY or OPENAI_API_KEY "
                 "environment variable, or pass api_key parameter to client."
-            ),
-            response=None,  # type: ignore
+            )
         )
 
     validate_api_key(key)
@@ -58,37 +57,22 @@ def validate_api_key(api_key: str) -> None:
         AuthenticationError: If API key format is invalid.
     """
     if not isinstance(api_key, str):
-        raise AuthenticationError(
-            message="API key must be a string",
-            response=None,  # type: ignore
-        )
+        raise APIError(message="API key must be a string")
 
     if not api_key.startswith("sk-"):
-        raise AuthenticationError(
-            message="Invalid API key format. API key must start with 'sk-'",
-            response=None,  # type: ignore
-        )
+        raise APIError(message="Invalid API key format. API key must start with 'sk-'")
 
     # Basic format check: sk-{prefix}_{key}
     if "_" not in api_key:
-        raise AuthenticationError(
-            message="Invalid API key format. Expected format: sk-{prefix}_{key}",
-            response=None,  # type: ignore
-        )
+        raise APIError(message="Invalid API key format. Expected format: sk-{prefix}_{key}")
 
     parts = api_key.split("_", 1)
     if len(parts) != 2:
-        raise AuthenticationError(
-            message="Invalid API key format",
-            response=None,  # type: ignore
-        )
+        raise APIError(message="Invalid API key format")
 
     prefix = parts[0]  # Should be "sk-{6chars}"
     if len(prefix) < 9:  # "sk-" + at least 6 chars
-        raise AuthenticationError(
-            message="Invalid API key format. Prefix too short.",
-            response=None,  # type: ignore
-        )
+        raise APIError(message="Invalid API key format. Prefix too short.")
 
 
 def create_auth_headers(api_key: str) -> dict:
