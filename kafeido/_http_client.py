@@ -113,6 +113,13 @@ class HTTPClient:
 
                 # Check for errors
                 if not response.is_success:
+                    # Retry 5xx errors on idempotent methods
+                    if response.status_code >= 500 and method.upper() in ("GET", "HEAD"):
+                        last_error = error_from_response(response)
+                        if attempt < self.max_retries:
+                            time.sleep(2 ** attempt)
+                            continue
+                        raise last_error
                     raise error_from_response(response)
 
                 # Return raw response for streaming
@@ -128,7 +135,7 @@ class HTTPClient:
                     request=e.request if hasattr(e, "request") else None,
                 )
                 if attempt < self.max_retries:
-                    time.sleep(2 ** attempt)  # Exponential backoff
+                    time.sleep(2 ** attempt)
                     continue
                 raise last_error
 
@@ -143,7 +150,6 @@ class HTTPClient:
                 raise last_error
 
             except httpx.HTTPStatusError:
-                # Don't retry on 4xx/5xx errors
                 raise
 
         # Should not reach here, but raise last error if we do
@@ -301,6 +307,13 @@ class AsyncHTTPClient:
 
                 # Check for errors
                 if not response.is_success:
+                    # Retry 5xx errors on idempotent methods
+                    if response.status_code >= 500 and method.upper() in ("GET", "HEAD"):
+                        last_error = error_from_response(response)
+                        if attempt < self.max_retries:
+                            await asyncio.sleep(2 ** attempt)
+                            continue
+                        raise last_error
                     raise error_from_response(response)
 
                 # Return raw response for streaming

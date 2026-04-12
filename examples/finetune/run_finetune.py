@@ -99,7 +99,7 @@ def create_job(client, model_name):
         validation_file=val_file_id,
         suffix="acme-support",
         hyperparameters=FineTuningHyperparameters(
-            n_epochs=3,
+            n_epochs=1,
             learning_rate=2e-4,
             batch_size=model_config["batch_size"],
             lora_rank=model_config["lora_rank"],
@@ -111,7 +111,11 @@ def create_job(client, model_name):
     print(f"Job created: {job.id}")
     print(f"Status: {job.status}")
     print(f"Base model: {job.model}")
+    if job.fine_tuned_model:
+        print(f"Fine-tuned model: {job.fine_tuned_model}")
     print(f"\n  To resume monitoring later: python run_finetune.py --job-id {job.id}")
+    if job.fine_tuned_model:
+        print(f"  To run inference later:     python run_inference.py {job.fine_tuned_model}")
     return job
 
 
@@ -144,7 +148,12 @@ def main():
     print("\n=== Step 4: Waiting for job to complete ===")
     last_event_id = None
     while True:
-        job = client.fine_tuning.jobs.retrieve(job.id)
+        try:
+            job = client.fine_tuning.jobs.retrieve(job.id)
+        except Exception as e:
+            print(f"  (retrying: {e})")
+            time.sleep(10)
+            continue
 
         # Show new training progress events since last poll
         try:
