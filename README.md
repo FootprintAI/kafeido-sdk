@@ -25,7 +25,7 @@ The official Python SDK for [Kafeido](https://api.kafeido.app) - An OpenAI-compa
 ## Installation
 
 ```bash
-pip install kafeido
+pip install git+https://github.com/footprintai/kafeido-sdk.git
 ```
 
 ### Optional Dependencies
